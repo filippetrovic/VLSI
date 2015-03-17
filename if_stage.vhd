@@ -24,10 +24,14 @@ architecture RTL of if_stage is
 		instructions: undecoded_instruction_array_t;
 	end record inst_register_t;
 	
+--	PC registar
 	signal pc_reg, pc_next: pc_register_t;
+--	ovo mozda nije potrebno, treba razmisliti da li umesto ovoga moze da se koristi (pc_reg - ISSUE_WIDTH)
 	signal last_pc_reg, last_pc_next: pc_register_t;
+--	buffer na kraju IF faze
 	signal stage_buf_reg, stage_buf_next: inst_register_t;
 	
+--	sve na 0
 	function reset_pc return pc_register_t is
 		variable to_ret : pc_register_t;
 	begin
@@ -35,9 +39,12 @@ architecture RTL of if_stage is
 		return to_ret;
 	end function reset_pc;
 	
+--	ovo su neki tmp signali koje je i Zika koristio
 	signal out_data_tmp: if_data_out_t;
 	signal out_control_tmp: if_control_out_t;
 	
+--	ff koji sluzi da jump signal produzi na trajanje od 2 takta, osim sto nisu valedne trenutne instrukcije,
+--	nece biti validne ni iz sledeceg takta
 	signal delayed_jump_signal_ff: std_logic;
 begin
 	
@@ -54,6 +61,7 @@ begin
 		end if;
 	end process clk_proc;
 	
+--	ovako Zika radi
 	out_control <= out_control_tmp;
 	out_data <= out_data_tmp;
 	
@@ -91,13 +99,18 @@ begin
 			end if;		
 		end if;
 		
+--		data lines from IF to MEM
+		
+		for i in out_data_tmp.mem_address'range loop
+			out_data_tmp.mem_address(i) <= unsigned_add(pc_reg.pc, i);
+		end loop;
 		
 		
 	end process comb;
 	
---	jump signal iz brunch jedinicice (in_control.jump) traje jednu periodu takta. Znaci da su nama podaci nevalidni kada je 
---	in_control.jump == '0' i u sledecem taktu (tada iz memorije pristize nesto sto nam ne treba). Zato postoji valid_ff.
-	
+--	jump signal iz brunch jedinicice (in_control.jump) traje jednu periodu takta. 
+--	Znaci da su nama podaci nevalidni kada je in_control.jump == '0' i u sledecem taktu 
+--	(tada iz memorije pristize nesto sto nam ne treba). Zato postoji valid_ff.
 	out_control_tmp.valid <= 	'0' when in_control.jump = '1' OR delayed_jump_signal_ff = '1' else
 								'1';
 	
