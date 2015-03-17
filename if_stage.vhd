@@ -43,9 +43,6 @@ architecture RTL of if_stage is
 	signal out_data_tmp: if_data_out_t;
 	signal out_control_tmp: if_control_out_t;
 	
---	ff koji sluzi da jump signal produzi na trajanje od 2 takta, osim sto nisu valedne trenutne instrukcije,
---	nece biti validne ni iz sledeceg takta
-	signal delayed_jump_signal_ff: std_logic;
 begin
 	
 	clk_proc : process (clk, reset) is
@@ -75,6 +72,7 @@ begin
 		for i in out_data_tmp.instructions'range loop
 			out_data_tmp.instructions(i).instruction <= stage_buf_reg.instructions(i).instruction;
 			out_data_tmp.instructions(i).pc <= stage_buf_reg.instructions(i).pc;
+			out_data_tmp.instructions(i).valid <= stage_buf_reg.instructions(i).valid;
 		end loop;
 		
 --		data lines from MEM to IF (saved in stage_buf)
@@ -86,7 +84,22 @@ begin
 		if in_control.jump = '1' then
 			pc_next.pc <= in_data.jump_address;
 			out_control_tmp.read <= '1';
+--			valid = 0  za ovaj takt
+			for i in out_data_tmp.instructions'range loop
+				out_data_tmp.instructions(i).valid <= '0';
+			end loop;
+--			i za sledeci takt, sledi objasnjenje:
+--	jump signal iz brunch jedinicice (in_control.jump) traje jednu periodu takta. 
+--	Znaci da su nama podaci nevalidni kada je in_control.jump == '0' i u sledecem taktu 
+--	(tada iz memorije pristize nesto sto nam ne treba).
+			for i in out_data_tmp.instructions'range loop
+				stage_buf_next.instructions(i).valid <= '0';
+			end loop;
 		else
+			for i in out_data_tmp.instructions'range loop
+				stage_buf_next.instructions(i).valid <= '1';
+			end loop;
+			
 			if in_control.stall = '1' then
 				pc_next <= pc_reg;
 				stage_buf_next <= stage_buf_reg;
@@ -108,16 +121,4 @@ begin
 		
 	end process comb;
 	
---	jump signal iz brunch jedinicice (in_control.jump) traje jednu periodu takta. 
---	Znaci da su nama podaci nevalidni kada je in_control.jump == '0' i u sledecem taktu 
---	(tada iz memorije pristize nesto sto nam ne treba). Zato postoji valid_ff.
-	out_control_tmp.valid <= 	'0' when in_control.jump = '1' OR delayed_jump_signal_ff = '1' else
-								'1';
-	
-	validff : process (clk) is
-	begin
-		if (rising_edge(clk)) then
-			delayed_jump_signal_ff <= in_control.jump;
-		end if;
-	end process validff;
 end architecture RTL;
