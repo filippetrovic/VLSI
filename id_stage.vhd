@@ -111,6 +111,9 @@ begin
 		stage_buff_next <= stage_buff_reg;
 		out_control_tmp.stall <= '0';
 		
+--		Lines from ID to OF
+		out_data_tmp.instructions <= stage_buff_reg.instructions;
+		
 		if in_control.jump = '1' then
 --			u istom taktu valid na izlazu <= 0
 			for i in out_data_tmp.instructions'range loop
