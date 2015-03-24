@@ -26,7 +26,7 @@ architecture RTL of if_stage is
 	
 --	PC registar
 	signal pc_reg, pc_next: pc_register_t;
---	ovo mozda nije potrebno, treba razmisliti da li umesto ovoga moze da se koristi (pc_reg - ISSUE_WIDTH)
+--	TODO: ovo mozda nije potrebno, treba razmisliti da li umesto ovoga moze da se koristi (pc_reg - ISSUE_WIDTH)
 	signal last_pc_reg, last_pc_next: pc_register_t;
 --	buffer na kraju IF faze
 	signal stage_buf_reg, stage_buf_next: inst_register_t;
@@ -37,24 +37,29 @@ architecture RTL of if_stage is
 	begin
 		to_ret.pc := (others => '0');
 		return to_ret;
-	end function reset_pc;
+	end function reset_pc;	
 	
 --	ovo su neki tmp signali koje je i Zika koristio
 	signal out_data_tmp: if_data_out_t;
 	signal out_control_tmp: if_control_out_t;
 	
+	signal resetFF : std_logic;
 begin
 	
 	clk_proc : process (clk, reset) is
 	begin
 		if reset = '1' then
---			out_control.valid <= '0';
 			pc_reg <= reset_pc;
 			last_pc_reg <= reset_pc;
+			for i in stage_buf_reg.instructions'range loop
+				stage_buf_reg.instructions(i).valid <= '0';
+			end loop;
+			resetFF <= '1';
 		elsif rising_edge(clk) then
 			pc_reg <= pc_next;
 			stage_buf_reg <= stage_buf_next;
 			last_pc_reg <= last_pc_next;
+			resetFF <= '0';
 		end if;
 	end process clk_proc;
 	
@@ -62,11 +67,12 @@ begin
 	out_control <= out_control_tmp;
 	out_data <= out_data_tmp;
 	
-	comb : process (pc_reg, stage_buf_reg, in_data, in_control, last_pc_reg) is
+	comb : process (pc_reg, stage_buf_reg, in_data, in_control, last_pc_reg, resetFF) is
 	begin
 		pc_next <= pc_reg;
 		stage_buf_next <= stage_buf_reg;
 		last_pc_next <= last_pc_reg;
+		out_control_tmp.read <= '1';
 		
 --		data lines from IF to ID (from stage_buf)
 		for i in out_data_tmp.instructions'range loop
@@ -76,7 +82,7 @@ begin
 		end loop;
 		
 --		data lines from MEM to IF (saved in stage_buf)
-		for i in in_data.mem_values'range loop
+		for i in stage_buf_next.instructions'range loop
 			stage_buf_next.instructions(i).instruction <= in_data.mem_values(i);
 			stage_buf_next.instructions(i).pc <= unsigned_add(last_pc_reg.pc, i);
 		end loop;
@@ -92,11 +98,11 @@ begin
 --	jump signal iz brunch jedinicice (in_control.jump) traje jednu periodu takta. 
 --	Znaci da su nama podaci nevalidni kada je in_control.jump == '0' i u sledecem taktu 
 --	(tada iz memorije pristize nesto sto nam ne treba).
-			for i in out_data_tmp.instructions'range loop
+			for i in stage_buf_next.instructions'range loop
 				stage_buf_next.instructions(i).valid <= '0';
 			end loop;
-		else
-			for i in out_data_tmp.instructions'range loop
+		elsif resetFF = '0' then	-- resetFF omogucava da se posle reseta saceka jos jedan takt
+			for i in stage_buf_next.instructions'range loop
 				stage_buf_next.instructions(i).valid <= '1';
 			end loop;
 			
