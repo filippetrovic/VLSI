@@ -67,7 +67,7 @@ begin
 	out_control <= out_control_tmp;
 	out_data <= out_data_tmp;
 	
-	comb : process (pc_reg, stage_buf_reg, in_data, in_control, last_pc_reg, resetFF) is
+	comb : process (pc_reg, stage_buf_reg, in_data, in_control, last_pc_reg, resetFF, reset) is
 	begin
 		pc_next <= pc_reg;
 		stage_buf_next <= stage_buf_reg;
@@ -88,16 +88,20 @@ begin
 		end loop;
 		
 		if in_control.jump = '1' then
-			pc_next.pc <= in_data.jump_address;
+--			pc next je za ISSUE_WIDTH veci od jump adrese
+--			jer je jump adresa odmah prosledjena na ulaz memorije
+			pc_next.pc <= unsigned_add(in_data.jump_address, ISSUE_WIDTH);
+--			prethodni pc je upravo jump_address
+			last_pc_next.pc <= in_data.jump_address;
 			out_control_tmp.read <= '1';
 --			valid = 0  za ovaj takt
 			for i in out_data_tmp.instructions'range loop
 				out_data_tmp.instructions(i).valid <= '0';
 			end loop;
 --			i za sledeci takt, sledi objasnjenje:
---	jump signal iz brunch jedinicice (in_control.jump) traje jednu periodu takta. 
---	Znaci da su nama podaci nevalidni kada je in_control.jump == '0' i u sledecem taktu 
---	(tada iz memorije pristize nesto sto nam ne treba).
+--			jump signal iz brunch jedinicice (in_control.jump) traje jednu periodu takta. 
+--			Znaci da su nama podaci nevalidni kada je in_control.jump == '0' i u sledecem taktu 
+--			(tada iz memorije pristize instrukcija na koju se skace, ali jos nije na izlazu IF faze).
 			for i in stage_buf_next.instructions'range loop
 				stage_buf_next.instructions(i).valid <= '0';
 			end loop;
@@ -116,13 +120,24 @@ begin
 				pc_next.pc <= unsigned_add(pc_reg.pc, ISSUE_WIDTH);
 				out_control_tmp.read <= '1';
 			end if;		
+		elsif resetFF = '1' AND reset = '0' then
+			last_pc_next.pc <= pc_reg.pc;
+			pc_next.pc <= unsigned_add(pc_reg.pc, ISSUE_WIDTH);
+			out_control_tmp.read <= '1';
 		end if;
 		
 --		data lines from IF to MEM
 		
-		for i in out_data_tmp.mem_address'range loop
-			out_data_tmp.mem_address(i) <= unsigned_add(pc_reg.pc, i);
-		end loop;
+		if in_control.jump = '1' then
+--			jump adresa se odmah salje na ulaz memorije => usteda 1 takt			
+			for i in out_data_tmp.mem_address'range loop
+				out_data_tmp.mem_address(i) <= unsigned_add(in_data.jump_address, i);
+			end loop;
+		else
+			for i in out_data_tmp.mem_address'range loop
+				out_data_tmp.mem_address(i) <= unsigned_add(pc_reg.pc, i);
+			end loop;
+		end if;
 		
 		
 	end process comb;

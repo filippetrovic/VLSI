@@ -66,17 +66,43 @@ BEGIN
 	
 	reset <= '1';
 	wait until rising_edge(clk);
-	wait for 34 ns;
 	reset <= '0';
 	
 	wait until rising_edge(clk);
+	wait until rising_edge(clk);
+	wait until rising_edge(clk);
+	wait until rising_edge(clk);
 	
-	for i in 0 to 9 loop
-		in_data.mem_values(0) <= std_logic_vector(to_unsigned(i,32));
-		in_data.mem_values(1) <= std_logic_vector(to_unsigned(i,32));
-		wait until rising_edge(clk);
-	end loop;
+	in_control.stall <= '1';
+	wait until rising_edge(clk);
+	in_control.stall <= '0';
+	
+	in_control.jump <= '1';
+
+	
+	in_data.jump_address <= (7 => '1', others => '0');
+	wait until rising_edge(clk);
+	in_control.jump <= '0';
+  in_data.jump_address <= (others => '0');
+	
+	
+	
 WAIT;                                                        
 END PROCESS;
-                                          
+
+process (clk, out_control)
+  variable next1, next2 : std_logic_vector(31 downto 0);
+begin
+    if (rising_edge(clk)) then
+      if (out_control.read = '1') then
+        next1 := out_data.mem_address(0);
+        next2 := out_data.mem_address(1);
+      end if;
+      
+      in_data.mem_values(0) <= next1;
+      in_data.mem_values(1) <= next2;
+    
+    end if;
+end process;  
+                                      
 END if_stage_arch;
