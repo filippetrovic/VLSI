@@ -59,25 +59,40 @@ package vlsi_pkg is
 		stall: std_logic;
 	end record id_control_out_t;
 	
-	type mnemonic_t is (
-		AND_M, SUB_M, ADD_M, ADC_M, SBC_M, CMP_M, SSUB_M, SADD_M, SADC_M, SSBC_M,
-		MOV_M, NOT_M, SL_M, SR_M, ASR_M,
---		MOV_M, -- u tekstu se dva puta pominje MOV instrukcija 
-		SMOV_M,
-		LOAD_M, STORE_M,
-		BEQ_M, BGT_M, BHI_M, BAL_M, BLAL_M,
-		STOP_M,
-		ERROR_M
-	);
---	TODO: Ovo izaziva neki critical warning: 
---	18061 Ignored Power-Up Level option on the following registers:
---	Critical Warning (18010): Register stage_buff_reg.instructions[1].op[3] will power up to High
---	Critical Warning (18010): Register stage_buff_reg.instructions[1].op[4] will power up to High
---	Critical Warning (18010): Register stage_buff_reg.instructions[0].op[3] will power up to High
---	Critical Warning (18010): Register stage_buff_reg.instructions[0].op[4] will power up to High
-	attribute enum_encoding : string;
-	attribute enum_encoding of mnemonic_t : type is "sequential";
-
+	subtype mnemonic_t is std_logic_vector(4 downto 0);
+--	instruckcije za obradu podataka
+	constant AND_M : mnemonic_t := "00000";
+	constant SUB_M : mnemonic_t := "00001";
+	constant ADD_M : mnemonic_t := "00010";
+	constant ADC_M : mnemonic_t := "00011";
+	constant SBC_M : mnemonic_t := "00100";
+	constant CMP_M : mnemonic_t := "00101";
+	constant SSUB_M : mnemonic_t := "00110";
+	constant SADD_M : mnemonic_t := "00111";
+	constant SADC_M : mnemonic_t := "01000";
+	constant SSBC_M : mnemonic_t := "01001";
+	constant MOV_M : mnemonic_t := "01010";
+	constant NOT_M : mnemonic_t := "01011";
+	constant SL_M : mnemonic_t := "01100";
+	constant SR_M : mnemonic_t := "01101";
+	constant ASR_M : mnemonic_t := "01110";
+--	instrukcije za obradu podataka sa neposrednim operandom
+	constant IMOV_M : mnemonic_t := "01111";
+	constant SIMOV_M : mnemonic_t := "10000";
+--	laod/store
+	constant LOAD_M : mnemonic_t := "10100";
+	constant STORE_M : mnemonic_t := "10101";
+--	instrukcije skoka
+	constant BEQ_M : mnemonic_t := "11000";
+	constant BGT_M : mnemonic_t := "11001";
+	constant BHI_M : mnemonic_t := "11010";
+	constant BAL_M : mnemonic_t := "11011";
+	constant BLAL_M : mnemonic_t := "11100";
+--	stop instrukcija
+	constant STOP_M : mnemonic_t := "11111";
+--	error (invalid opcode)
+	constant ERROR_M : mnemonic_t := "10001";
+	
 	subtype reg_num_t is std_logic_vector(4 downto 0);
 	subtype immediate_t is std_logic_vector(16 downto 0);
 	subtype jump_offset_t is std_logic_vector(26 downto 0);

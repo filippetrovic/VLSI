@@ -36,6 +36,7 @@ architecture RTL of id_stage is
 			to_ret.instructions(i).r1 := (others => '0');
 			to_ret.instructions(i).r2 := (others => '0');
 			to_ret.instructions(i).r3 := (others => '0');
+			to_ret.instructions(i).valid := '0';
 		end loop;
 		
 		return to_ret;
@@ -54,40 +55,7 @@ architecture RTL of id_stage is
 			ret.instructions(i).r2 := undecoded(i).instruction(16 downto 12);
 			ret.instructions(i).r3 := undecoded(i).instruction(21 downto 17);
 			ret.instructions(i).valid := undecoded(i).valid;
-			
-			case undecoded(i).instruction(31 downto 27) is
-				when "00000" => ret.instructions(i).op := AND_M;
-				when "00001" => ret.instructions(i).op := SUB_M;
-				when "00010" => ret.instructions(i).op := ADD_M;
-				when "00011" => ret.instructions(i).op := ADC_M;
-				when "00100" => ret.instructions(i).op := SBC_M;
-				when "00101" => ret.instructions(i).op := CMP_M;
-				when "00110" => ret.instructions(i).op := SSUB_M;
-				when "00111" => ret.instructions(i).op := SADD_M;
-				when "01000" => ret.instructions(i).op := SADC_M;
-				when "01001" => ret.instructions(i).op := SSBC_M;
-				when "01010" => ret.instructions(i).op := MOV_M;
-				when "01011" => ret.instructions(i).op := NOT_M;
-				when "01100" => ret.instructions(i).op := SL_M;
-				when "01101" => ret.instructions(i).op := SR_M;
-				when "01110" => ret.instructions(i).op := ASR_M;
-					
-				when "01111" => ret.instructions(i).op := MOV_M;
-				when "10000" => ret.instructions(i).op := SMOV_M;
-					
-				when "10100" => ret.instructions(i).op := LOAD_M;
-				when "10101" => ret.instructions(i).op := STORE_M;
-					
-				when "11000" => ret.instructions(i).op := BEQ_M;
-				when "11001" => ret.instructions(i).op := BGT_M;
-				when "11010" => ret.instructions(i).op := BHI_M;
-				when "11011" => ret.instructions(i).op := BAL_M;
-				when "11100" => ret.instructions(i).op := BLAL_M;
-					
-				when "11111" => ret.instructions(i).op := STOP_M;
-				when others => ret.instructions(i).op := ERROR_M;
-			end case;
-			
+			ret.instructions(i).op := undecoded(i).instruction(31 downto 27);
 		end loop;
 		
 		return ret;
@@ -108,7 +76,7 @@ begin
 	
 	comb : process(stage_buff_reg, in_control, in_data) is
 	begin
-		stage_buff_next <= stage_buff_reg;
+		stage_buff_next <= decode(in_data.instructions);
 		out_control_tmp.stall <= '0';
 		
 --		Lines from ID to OF
@@ -122,8 +90,8 @@ begin
 		elsif in_control.stall = '1' then
 			out_control_tmp.stall <= '1';
 			stage_buff_next <= stage_buff_reg;
-		else
-			stage_buff_next <= decode(in_data.instructions);
+--		else
+--			stage_buff_next <= decode(in_data.instructions);
 		end if;
 		
 	end process comb;
