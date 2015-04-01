@@ -2,6 +2,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use work.vlsi_pkg.all;
 
+-- id faza predstavlja drugi stepen protocne obrade.
+-- id faza na svom kraju ima stage registre.
+-- prihvata nedekodovanu instrukciju, deli bite po formatu instrkucije (dekoduje)
+-- i to prosledjuje dalje. VAZNO: U ovoj fazi se ne dohvata vrednost operanada.
 entity id_stage is
 	port (
 		clk : in std_logic;

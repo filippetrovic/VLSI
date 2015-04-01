@@ -2,6 +2,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use work.vlsi_pkg.all;
 
+-- ovaj entitet predstavlja prednji kraj procesora, tj interfejs ka
+-- instrukcijskoj kes memoriji, if fazu, id fazu, i interfejs ka sredisnjem
+-- delu procesora koji je zaduzen za rasporedjivanje, kontrolu harazda i sl.
+-- U frontendu nema dohvatanja operanada!
 entity frontend is
 	port (
 		clk : in std_logic;

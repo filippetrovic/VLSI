@@ -1,9 +1,12 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-
 use work.vlsi_pkg.all;
 
+-- if stage predstavlja prvi stepen protocne obrade.
+-- if faza na svom kraju ima stage registre.
+-- if komunicira sa instrukcojskom kes memorijom, odrzava pc vrednost i
+-- prosledjuje nedekodovane instrukcije id fazi.
 entity if_stage is
 	port (
 		clk : in std_logic;

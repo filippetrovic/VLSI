@@ -116,6 +116,57 @@ package vlsi_pkg is
 	
 --	ID stage types end
 	
+--	RegFile types and constants
+--	sirina za adresu	
+	constant NUM_OF_REG_LOG : integer := 5;
+	
+--	sirina registra
+	constant REGISTER_WIDTH : integer := 32;
+	
+--	broj linija za citanje
+	constant READ_LINES_NUM : integer := 4;
+	
+--	broj linija za upis
+	constant WRITE_LINES_NUM : integer := 4;
+	
+--	ovaj tip predstavlja adresu sa koje se cita
+	subtype reg_address is std_logic_vector(NUM_OF_REG_LOG - 1 downto 0);
+	
+--	ovaj tip predstavlja jedan registar
+	subtype gp_register is std_logic_vector(REGISTER_WIDTH - 1 downto 0);
+	
+--	32 registra opste namene
+	type registers is array(0 to 31) of gp_register;
+	
+--	READ_LINES_NUM linija za adresu za citanje
+	type read_address_array_t is array(0 to READ_LINES_NUM - 1) of reg_address;
+	
+--	READ_LINES_NUM linija za procitanu vrednost
+	type grp_output_value_t is array (0 to READ_LINES_NUM - 1) of gp_register;
+	
+--	adresa, vrednost i write signal za jedan upis
+	type write_data_t is record
+		address: reg_address;
+		value: gp_register;
+		write: std_logic;
+	end record write_data_t;
+	
+--	WRITE_LINES_NUM ulaza za upis
+	type write_data_array_t is array(0 to WRITE_LINES_NUM - 1) of write_data_t;
+	
+	
+--	svi ulazni podaci u registartski fajl
+	type gpr_in_data_t is record
+		read_address: read_address_array_t;
+		write_data_arr: write_data_array_t;
+	end record gpr_in_data_t;
+	
+--	svi izlazni podaci (linije) iz registarskog fajla
+	type gpr_out_data_t is record
+		value: grp_output_value_t;
+	end record gpr_out_data_t;
+	
+--	RegFile types and constants end
 	function unsigned_add(data : std_logic_vector; increment : natural) return std_logic_vector;
 end package vlsi_pkg;
 
