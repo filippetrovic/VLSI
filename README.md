@@ -3,6 +3,7 @@
 Tekst projekta: [http://home.etf.rs/~vm/os/vlsi/projekat/januar2015.pdf](http://home.etf.rs/~vm/os/vlsi/projekat/januar2015.pdf)
 
 Trenutna zamisao je da procesor bude podeljen u tri dela.
+[Slika (organizacija 2.0)](https://drive.google.com/file/d/0BwMJvMt6otSRUlVQNjQzVHNuMWc/view?usp=sharing)
 
 ## Prvi deo (FRONTEND): ##
 prvi deo cine faze IF i ID. Te faze imaju registre na svojim krajevima.
