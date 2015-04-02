@@ -14,15 +14,16 @@ Sadrzaj:
 2. ID Stage: prihvata nedekodovane instrukcije od IF, dekoduje ih i salje dalje.
 
 ## Drugi deo (MIDDLE-CONTROL): ##
-ovaj deo sadrzi registarski fajl i zaduzen je da instrukcije koje dolaze iz fronenda prosledi na odgovarajucu funckionalnu jedinicu (ALU, MEM, BRANCH), tj da je prosledi u backend procesora.
+Ovaj deo sadrzi registarski fajl i zaduzen je da instrukcije koje dolaze iz fronenda prosledi na odgovarajucu funckionalnu jedinicu (ALU, MEM, BRANCH), tj da je prosledi u backend procesora.
 ovaj deo osim prosledjivanja vodi racuna o hazardima i prosledjivanju vrednosti (da bi izbegli stall pipelinea). U slucaju da ne moze izbeci hazard stopira frontend signalom stall. 
 
 Sadrzaj:
 
-1. GPR File: Registarski fajl sa mogucnoscu cetiri istovremena citanja i cetiri (valjda) upisa.
-2. Jedinica za prosledjivanje: kombinaciona mreza koja treba da prosledi odgovarajucu instrukciju na odgovarajucu funkcionalnu jedinici.
-3. Jedinica za detekciju hazarda: Samo ime kaze, detektuje kada se mora zaustaviti pipeline.
-4. Jedinica za prosledjivanje: Detektuje kada je moguce proslediti izlaz neke funkc. jedinice na ulaz neke funkc. jedinice.
+1. GPR File: Registarski fajl sa mogucnoscu cetiri istovremena citanja i cetiri (valjda) upisa. Nije "thread-safe", tj ne daje nikakve garancije u slucaju vise istovremenih upisa u isti registar.
+2. Jedinica za rasporedjivanje: kombinaciona mreza koja treba da prosledi odgovarajucu instrukciju na odgovarajucu funkcionalnu jedinici, tj da u zavisnosti od op_coda instrukcije da saglasnost za aktiviranje neke funck jedinice, njenih jedinica za prosledjivanje i sl.
+3. Jedinica za detekciju hazarda: Samo ime kaze, detektuje kada se mora zaustaviti pipeline. Signal da je doslo do harazda se vodi na Stall generator koji je zaduzen za generisanje stall signala. Signal da je doslo do hazarda ce ucestvovati i u logici aktiviranja funkc jedinica.
+4. Stall generator: Ovo je u osnovi SM sa tri stanja. Stanja su: "Inicijalno", "Kasnjenje jedan takt", "Cekanje na MEM". U inicjalnom stanju stall signal je neaktivan. U stanju "Kasnjenje jedan takt" SM se zadrzava jedan takt i za to stall signal je aktivan. Ovo se koristi za vecinu hazarda gde je potrebno nesto sacekati. U stanju "Cekanje na MEM" se ostaje dok MEM blok ne zavrsi svoj posao i odmah moze da prosledi vrednost koju je ucitao iz memorije. Ova SM ce verovatno biti koriscena i za invalidiranje odradjenih instrukcija dok se ceka na drugu, npr prva instrukcija iz ID je odradjena, i ova SM u slucaju cekanja uslova za drugu instrkucija treba da invalidira prvu (odradjenu instrukciju) jer je ona i dalje na izlazu ID faze.
+5. Jedinica za prosledjivanje: Detektuje kada je moguce proslediti izlaz neke funkc. jedinice na ulaz neke funkc. jedinice. Ovih jedinica postoji vise, tj ispred ALU funkc jedinica po jedna za svaki operand. Uprosceno to je samo jedan multiplekser i komb mreza za generisanje signala SEL tog mux-a. Ispred MEM ce postojati nesto drugacija jedinica za prosledjivanje od one ispred ALU, jer MEM moze da primi i prvu i drugu instrukciju iz ID faze i tu je potrebna dodatka logika pri izboru i proveri.
 
 ## Treci deo (BACKEND): ##
 Ovaj deo cine funcionalne jedinice (ALU, MEM, Branch) kao i kombinaciona mreza koja radi sinhronizaciju upisa u reg fajl. 
