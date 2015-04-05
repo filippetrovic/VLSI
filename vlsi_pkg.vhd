@@ -167,7 +167,25 @@ package vlsi_pkg is
 	end record gpr_out_data_t;
 	
 --	RegFile types and constants end
+
+--	WriteSinhUnit types and constants
+	
+--	ocekivani ulaz u wsh. addresa je "adresa" registra, njegov redni broj.
+--	value je vrednost, pc je pc instrukcije koja je izgenerisala vrednost.	
+	type wsh_in_data_t is record
+		address: reg_address;
+		value: gp_register;
+		pc: address_t;
+		valid: std_logic;
+	end record wsh_in_data_t;
+	
+	type wsh_in_data_array_t is array(0 to WRITE_LINES_NUM - 1) of wsh_in_data_t;
+	
+--	WriteSinhUnit types and constants end
+
+--	General Purpose functions
 	function unsigned_add(data : std_logic_vector; increment : natural) return std_logic_vector;
+	function bool2std_logic(bool : boolean) return std_logic;
 end package vlsi_pkg;
 
 package body vlsi_pkg is
@@ -181,4 +199,16 @@ package body vlsi_pkg is
 		end if;
 		return ret;
 	end function unsigned_add;
+	
+	function bool2std_logic(bool : boolean)
+		return std_logic is
+	begin
+		if bool then
+			return '1';
+		else
+			return '0';
+		end if;
+	end function bool2std_logic;
+	
+	
 end package body vlsi_pkg;
