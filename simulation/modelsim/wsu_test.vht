@@ -41,24 +41,27 @@ PROCESS
 BEGIN
 	wait for 5 ns;
 	in_data(0).pc <= "00000000000000000000000000000011";
-	in_data(0).address <= "00001";
-	in_data(0).valid <= '1';
+	in_data(0).address <= "00011";
+	in_data(0).valid <= '0';
 	in_data(0).value <= "00000000000000000000000000000011";
 	
  	in_data(1).pc <= "00000000000000000000000000000000";
-	in_data(1).address <= "00001";
+	in_data(1).address <= "00011";
 	in_data(1).valid <= '1';
 	in_data(1).value <= "00000000000000000000000000000000";
 	
 	in_data(2).pc <= "00000000000000000000000000000010";
-	in_data(2).address <= "00001";
-	in_data(2).valid <= '1';
+	in_data(2).address <= "00011";
+	in_data(2).valid <= '0';
 	in_data(2).value <= "00000000000000000000000000000010";
 	
 	in_data(3).pc <= "00000000000000000000000000000001";
-	in_data(3).address <= "00001";
+	in_data(3).address <= "00011";
 	in_data(3).valid <= '1';
 	in_data(3).value <= "00000000000000000000000000000001";
+	
+	wait for 10 ns;
+	in_data(0).valid <= '1';
 WAIT;                                                        
 END PROCESS;
                                       
