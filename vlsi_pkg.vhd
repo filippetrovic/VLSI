@@ -4,6 +4,7 @@ use ieee.numeric_std.all;
 
 package vlsi_pkg is 
 	constant ISSUE_WIDTH : integer := 2;
+	constant ALU_FUNC_NUM : integer := 2;
 	
 	subtype address_t is std_logic_vector(31 downto 0);
 
@@ -182,6 +183,39 @@ package vlsi_pkg is
 	type wsh_in_data_array_t is array(0 to WRITE_LINES_NUM - 1) of wsh_in_data_t;
 	
 --	WriteSinhUnit types and constants end
+
+--	Switch types and constants
+
+--	Svi hazardi su svrstani u tri kategorije. SM (stall generator je projektovana po ovom uzoru).
+--	Pogledati SM dijagram za stall generator.
+	type hazard_type is (A_type, B_type, C_type, No_hazard);
+	
+--	Switch-u je dovoljno da zna op code i da li je instrukcija validna, kao i da li je doslo do nekog hazarda,
+--	da bi mogao da generise "go" signal za neku func jedinicu.
+	
+	type switch_in_data_t is record
+		instructions: decoded_instruction_array_t;
+		haz_type: hazard_type;
+	end record switch_in_data_t;
+
+	
+--	izlaz switch-a i ulaz u func jedinicu. Switch prosledjuje dekodovani instrukciju i go signal.
+	type func_unit_input_control_t is record
+		instruction: decoded_instruction_t;
+		go: std_logic;
+	end record func_unit_input_control_t;
+	
+	type func_unit_input_control_array_t is array(0 to ALU_FUNC_NUM - 1) of func_unit_input_control_t;
+
+--	Svaki od cinilaca rekorda se vodi na odgovarajucu func jedinicu. Signal '1' oznacava da func ima validne
+--	vrednosti na svojim ulazima i da treba da pocne sa izvrsavanjem.	
+	type switch_out_data_t is record
+		alu_control: func_unit_input_control_array_t;
+		br_control: func_unit_input_control_t;
+		mem_control: func_unit_input_control_t;
+	end record switch_out_data_t;
+	
+--	Switch types and constants end
 
 --	General Purpose functions
 	function unsigned_add(data : std_logic_vector; increment : natural) return std_logic_vector;
