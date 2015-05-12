@@ -74,12 +74,19 @@ BEGIN
 	wait until rising_edge(clk);
 	wait until rising_edge(clk);
 	wait until rising_edge(clk);
-	
-	in_control.jump <= '1';
-	in_data.jump_address <= "11110000111100001111000011110000";
-	wait until rising_edge(clk);
-	in_data.jump_address <= "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ";
-	in_control.jump <= '0';
+	wait until rising_edge(clk);	
+
+	wait for 1 ns;
+	in_control.stall <= '1';
+	wait until rising_edge(clk);	
+	wait for 1 ns;
+	in_control.stall <= '0';
+	wait until rising_edge(clk);	
+	--in_control.jump <= '1';
+--	in_data.jump_address <= "11110000111100001111000011110000";
+--	wait until rising_edge(clk);
+--	in_data.jump_address <= "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ";
+--	in_control.jump <= '0';
 		
 	WAIT;                                                        
 END PROCESS;

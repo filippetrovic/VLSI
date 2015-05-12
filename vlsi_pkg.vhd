@@ -238,6 +238,29 @@ package vlsi_pkg is
 	
 --	JZP types and constants end
 
+--	JZP types and constants
+	
+--	Ulazni signali za SM (u daljem tekstu SM = stall generator). "haz_type" dolazi iz
+--	hazard detector-a i oznacava tip hazarda koji je detektovan. "mem_done" dolazi iz MEM.
+	type stall_generator_in_control_t is record
+		haz_type: hazard_type;
+		mem_done: std_logic;
+	end record stall_generator_in_control_t;
+	
+--	Ovim tipom se oznacava da li su Fica i Fedja validne instrukcije.
+--	Detaljnije je je objasnjeno u readme u odeljku 'Stall Genarator'.
+	type instruction_ready_array_t is array(0 to ISSUE_WIDTH-1) of std_logic;
+	
+--	"stall" je izlazni signal i sluzi za blokiranje frontend-a.
+--	inst_ready je signal koji ce biti koriscen za oznacavanje 
+--	validnosti instrukcija.
+	type stall_generator_out_control_t is record
+		stall : std_logic;
+		inst_ready: instruction_ready_array_t;	
+	end record stall_generator_out_control_t;
+	
+--	JZP types and constants end
+
 --	General Purpose functions
 	function unsigned_add(data : std_logic_vector; increment : natural) return std_logic_vector;
 	function bool2std_logic(bool : boolean) return std_logic;
