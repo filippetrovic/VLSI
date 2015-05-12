@@ -217,6 +217,27 @@ package vlsi_pkg is
 	
 --	Switch types and constants end
 
+--	JZP types and constants
+	
+--	Ulazni tip podataka za jzp. Linije "from_wsu" dolaze iz WriteSinhUnit,
+--	dok linije "from_gpr" predstavljaju jedan izlaz GPR.
+--	"address" je adresa registra za koji se razmatra prosledjivanje.
+	type jzp_in_data_t is record
+		from_wsu: write_data_array_t;
+		from_gpr: gp_register;
+		address: reg_address;
+	end record jzp_in_data_t;
+	
+--	Izlazni tip podataka za jzp. "out_value" je (aktuelna) vrednost registra,
+--	tj. ono sto jzp prosledjuje na izlaz.
+--	"address" je samo prosledjena vrednost "address" bez transformacija.
+	type jzp_out_data_t is record
+		out_value: gp_register;
+		address: reg_address;
+	end record jzp_out_data_t;
+	
+--	JZP types and constants end
+
 --	General Purpose functions
 	function unsigned_add(data : std_logic_vector; increment : natural) return std_logic_vector;
 	function bool2std_logic(bool : boolean) return std_logic;

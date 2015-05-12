@@ -23,7 +23,7 @@ begin
 			for j in in_data'range loop
 				
 --				poredi se svako sa svakim.
---				ako je i != j, pokazuju na isti registar, ulaz j je validan, i.pc je manji od j.pc
+--				ako je i != j AND pokazuju na isti registar AND ulaz j je validan AND i.pc je manji od j.pc
 --				onda ulaz i nije validan.
 				if i /= j AND 
 					in_data(i).address = in_data(j).address AND
