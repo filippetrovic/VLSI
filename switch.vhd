@@ -48,6 +48,8 @@ begin
 				when to_integer(unsigned(LOAD_M)) | to_integer(unsigned(STORE_M)) =>
 					data_out.mem_control.go <= '1';
 					data_out.mem_control.instruction <= data_in.instructions(instruction_num);
+					data_out.r1 <= data_in.instructions(instruction_num).r1;
+					data_out.r2 <= data_in.instructions(instruction_num).r2;
 				when to_integer(unsigned(BEQ_M)) to to_integer(unsigned(BLAL_M))  =>
 					data_out.br_control.go <= '1';
 					data_out.br_control.instruction <= data_in.instructions(instruction_num);
@@ -55,6 +57,9 @@ begin
 			end case;
 		end procedure activate_func_unit;
 	begin
+		data_out.r1 <= "-----";
+		data_out.r2 <= "-----";
+		
 		for i in data_out.alu_control'range loop
 			data_out.alu_control(i).go <= '0';
 			data_out.alu_control(i).instruction <= not_important;

@@ -224,6 +224,8 @@ package vlsi_pkg is
 		alu_control: func_unit_input_control_array_t;
 		br_control: func_unit_input_control_t;
 		mem_control: func_unit_input_control_t;
+		r1: reg_num_t;
+		r2: reg_num_t;
 	end record switch_out_data_t;
 	
 --	Switch types and constants end
