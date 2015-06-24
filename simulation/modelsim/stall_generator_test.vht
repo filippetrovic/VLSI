@@ -73,6 +73,19 @@ BEGIN
 		wait until rising_edge(clock);								
 		in_ctrl.mem_done <= '0';
     wait until rising_edge(clock);														
+		wait until rising_edge(clock);
+		wait until rising_edge(clock);
+		
+		in_ctrl.haz_type <= C_type;
+		wait until rising_edge(clock);
+		in_ctrl.haz_type <= No_hazard;
+		wait until rising_edge(clock);
+		wait until rising_edge(clock);
+		wait until rising_edge(clock);								
+		in_ctrl.mem_done <= '1';		
+		wait until rising_edge(clock);								
+		in_ctrl.mem_done <= '0';
+		
 		
 		WAIT;
 	END PROCESS;

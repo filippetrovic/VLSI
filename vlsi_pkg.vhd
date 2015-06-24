@@ -195,9 +195,20 @@ package vlsi_pkg is
 	
 	type switch_in_data_t is record
 		instructions: decoded_instruction_array_t;
-		haz_type: hazard_type;
+--		haz_type: hazard_type; Revizija: Sada se koristi samo ready signal iz SM 
 	end record switch_in_data_t;
 
+--	Ovim tipom se oznacava da li Fica i Fedja idu u func jedinicu.
+--	Ako je vrednost '1' onda instrukciju treba proslediti u func jedinicu.
+--	Detaljnije je je objasnjeno u readme u odeljku 'Stall Genarator'.
+	type instruction_go_array_t is array(0 to ISSUE_WIDTH-1) of std_logic;
+
+--	ulazni tip.
+--	inst_go je inst_ready iz SM, i oznacava kada propustiti instrukciju na func jedinicu.
+	type switch_in_control_t is record
+		inst_go: instruction_go_array_t;
+	end record switch_in_control_t;
+	
 	
 --	izlaz switch-a i ulaz u func jedinicu. Switch prosledjuje dekodovani instrukciju i go signal.
 	type func_unit_input_control_t is record
@@ -238,7 +249,7 @@ package vlsi_pkg is
 	
 --	JZP types and constants end
 
---	JZP types and constants
+--	Stall_generator types and constants
 	
 --	Ulazni signali za SM (u daljem tekstu SM = stall generator). "haz_type" dolazi iz
 --	hazard detector-a i oznacava tip hazarda koji je detektovan. "mem_done" dolazi iz MEM.
@@ -247,19 +258,15 @@ package vlsi_pkg is
 		mem_done: std_logic;
 	end record stall_generator_in_control_t;
 	
---	Ovim tipom se oznacava da li su Fica i Fedja validne instrukcije.
---	Detaljnije je je objasnjeno u readme u odeljku 'Stall Genarator'.
-	type instruction_ready_array_t is array(0 to ISSUE_WIDTH-1) of std_logic;
-	
 --	"stall" je izlazni signal i sluzi za blokiranje frontend-a.
---	inst_ready je signal koji ce biti koriscen za oznacavanje 
---	validnosti instrukcija.
+--	inst_ready je signal koji se generise ovde (SM) i u odnosu na njega
+--	switch propusta na func jedinicu ili ne propusta.
 	type stall_generator_out_control_t is record
 		stall : std_logic;
-		inst_ready: instruction_ready_array_t;	
+		inst_ready: instruction_go_array_t;	
 	end record stall_generator_out_control_t;
 	
---	JZP types and constants end
+--	Stall_generator types and constants end
 
 --	General Purpose functions
 	function unsigned_add(data : std_logic_vector; increment : natural) return std_logic_vector;

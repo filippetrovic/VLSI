@@ -5,6 +5,8 @@ use work.vlsi_pkg.all;
 
 --	Stall generator je SM koja treba da generise 
 --	stall signal, signale za validnost instrukcija (ready signal).
+--	Semantika ready signala je promenjena, sada oznacava da se instrukcija
+--	treba proslediti u func jedinicu u tom taktu.
 entity stall_generator is
 	port (
 		clk : in std_logic;
@@ -17,9 +19,9 @@ end entity stall_generator;
 architecture RTL of stall_generator is
 --	pomocna funkcija, nista uzbudljivo, samo postavlja ready bite.
 	function setReady (fica_ready: std_logic; fedja_ready: std_logic)
-		return instruction_ready_array_t is
+		return instruction_go_array_t is
 	
-		variable toRet : instruction_ready_array_t;
+		variable toRet : instruction_go_array_t;
 	begin
 		
 		toRet(0) := fica_ready;
@@ -60,20 +62,22 @@ begin
 				NS <= N;
 				out_control.inst_ready <= setReady('0','1');
 			when B =>
-				out_control.inst_ready <= setReady('0','1');
 				if (in_control.mem_done = '1') then
 					NS <= N;
+					out_control.inst_ready <= setReady('0','1');
 				else
 					out_control.stall <= '1';
 					NS <= B;
+					out_control.inst_ready <= setReady('0','0');
 				end if;
 			when C =>
-				out_control.inst_ready <= setReady('1','1');
 				if (in_control.mem_done = '1') then
 					NS <= N;
+					out_control.inst_ready <= setReady('1','1');
 				else
 					out_control.stall <= '1';
 					NS <= C;
+					out_control.inst_ready <= setReady('0','0');
 				end if;
 			when N =>
 				out_control.inst_ready <= setReady('1','1');
@@ -81,14 +85,18 @@ begin
 					when A_type =>
 						out_control.stall <= '1';
 						NS <= A;
+						out_control.inst_ready <= setReady('1','0');
 					when B_type =>
 						out_control.stall <= '1';
 						NS <= B;
+						out_control.inst_ready <= setReady('1','0');
 					when C_type =>
 						out_control.stall <= '1';
 						NS <= C;
+						out_control.inst_ready <= setReady('0','0');
 					when No_hazard =>
 						NS <= N;
+						out_control.inst_ready <= setReady('1','1');
 				end case;
 		end case;
 		

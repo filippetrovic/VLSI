@@ -13,6 +13,7 @@ use work.vlsi_pkg.all;
 entity switch is
 	port (
 		data_in: in switch_in_data_t;
+		control_in: in switch_in_control_t;
 		data_out: out switch_out_data_t
 	);
 end entity switch;
@@ -37,7 +38,7 @@ architecture RTL of switch is
 	
 begin
 	
-	comb : process (data_in) is
+	comb : process (data_in, control_in) is
 		procedure activate_func_unit (inst: in mnemonic_t; instruction_num: in integer) is
 		begin
 			case to_integer(unsigned(inst)) is
@@ -63,11 +64,11 @@ begin
 		data_out.mem_control.go <= '0';
 		data_out.mem_control.instruction <= not_important;
 		
-		if data_in.haz_type /= C_type AND data_in.instructions(0).valid = '1' then
+		if control_in.inst_go(0) = '1' AND data_in.instructions(0).valid = '1' then
 			activate_func_unit(data_in.instructions(0).op, 0);
 		end if;
 		
-		if data_in.haz_type = No_hazard AND data_in.instructions(1).valid = '1' then
+		if control_in.inst_go(1) = '1' AND data_in.instructions(1).valid = '1' then
 			activate_func_unit(data_in.instructions(1).op, 1);
 		end if;
 		
