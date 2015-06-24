@@ -19,9 +19,9 @@ end entity stall_generator;
 architecture RTL of stall_generator is
 --	pomocna funkcija, nista uzbudljivo, samo postavlja ready bite.
 	function setReady (fica_ready: std_logic; fedja_ready: std_logic)
-		return instruction_go_array_t is
+		return instruction_ready_array_t is
 	
-		variable toRet : instruction_go_array_t;
+		variable toRet : instruction_ready_array_t;
 	begin
 		
 		toRet(0) := fica_ready;
@@ -29,6 +29,19 @@ architecture RTL of stall_generator is
 		
 		return toRet;
 	end function setReady;
+	
+--	takodje pomocna funkcija.
+	function setGO (fica_go: std_logic; fedja_go: std_logic)
+		return instruction_go_array_t is
+	
+		variable toRet : instruction_go_array_t;
+	begin
+		
+		toRet(0) := fica_go;
+		toRet(1) := fedja_go;
+		
+		return toRet;
+	end function setGO;
 	
 	
 --	stanja odgovaraju tipovima hazarda
@@ -52,51 +65,61 @@ begin
 --		od signala, znaci ako vidite stall <= '1' i pitate se gde se postavlja
 --		stall <= '0', odgovor je ovde. ;)
 		out_control.stall <= '0';
+		for i in out_control.inst_go'range loop
+			out_control.inst_go(i) <= '1';
+		end loop;
+--		inicijalno su obe instrukcije validne. Ovo ce se promeniti u zavisnosti od stanja.
 		for i in out_control.inst_ready'range loop
 			out_control.inst_ready(i) <= '1';
 		end loop;
+		
+		
 		
 --		u zavisnosti od stanja preduzeti neku akciju. 
 		case PS is 
 			when A =>
 				NS <= N;
+				out_control.inst_go <= setGO('0','1');
 				out_control.inst_ready <= setReady('0','1');
 			when B =>
+				out_control.inst_ready <= setReady('0','1');
 				if (in_control.mem_done = '1') then
 					NS <= N;
-					out_control.inst_ready <= setReady('0','1');
+					out_control.inst_go <= setGO('0','1');
 				else
 					out_control.stall <= '1';
 					NS <= B;
-					out_control.inst_ready <= setReady('0','0');
+					out_control.inst_go <= setGO('0','0');
 				end if;
 			when C =>
+				out_control.inst_ready <= setReady('1','1');
 				if (in_control.mem_done = '1') then
 					NS <= N;
-					out_control.inst_ready <= setReady('1','1');
+					out_control.inst_go <= setGO('1','1');
 				else
 					out_control.stall <= '1';
 					NS <= C;
-					out_control.inst_ready <= setReady('0','0');
+					out_control.inst_go <= setGO('0','0');
 				end if;
 			when N =>
 				out_control.inst_ready <= setReady('1','1');
+				out_control.inst_go <= setGO('1','1');
 				case in_control.haz_type is
 					when A_type =>
 						out_control.stall <= '1';
 						NS <= A;
-						out_control.inst_ready <= setReady('1','0');
+						out_control.inst_go <= setGO('1','0');
 					when B_type =>
 						out_control.stall <= '1';
 						NS <= B;
-						out_control.inst_ready <= setReady('1','0');
+						out_control.inst_go <= setGO('1','0');
 					when C_type =>
 						out_control.stall <= '1';
 						NS <= C;
-						out_control.inst_ready <= setReady('0','0');
+						out_control.inst_go <= setGO('0','0');
 					when No_hazard =>
 						NS <= N;
-						out_control.inst_ready <= setReady('1','1');
+						out_control.inst_go <= setGO('1','1');
 				end case;
 		end case;
 		

@@ -260,12 +260,19 @@ package vlsi_pkg is
 		mem_done: std_logic;
 	end record stall_generator_in_control_t;
 	
+--	Ovim tipom ce biti predstavljeno da li je instrukcija i dalje validna.
+--	Moze se desiti da je fica validan ako se gleda ID faza, ali je zbog Fedje doslo do hazarda,
+-- 	tako da je Fica propustan, a Fedja zadrzan. Kada se ispune uslovi da Fedja moze da se izvrsi,
+--	treba znati da je Fica vec obradjen. E tada ce ovaj tip (niz) imati vrednosti (0,1);
+	type instruction_ready_array_t is array(0 to ISSUE_WIDTH-1) of std_logic;
+	
 --	"stall" je izlazni signal i sluzi za blokiranje frontend-a.
 --	inst_ready je signal koji se generise ovde (SM) i u odnosu na njega
 --	switch propusta na func jedinicu ili ne propusta.
 	type stall_generator_out_control_t is record
 		stall : std_logic;
-		inst_ready: instruction_go_array_t;	
+		inst_go: instruction_go_array_t;
+		inst_ready: instruction_ready_array_t;	
 	end record stall_generator_out_control_t;
 	
 --	Stall_generator types and constants end
