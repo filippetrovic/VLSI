@@ -277,6 +277,33 @@ package vlsi_pkg is
 	
 --	Stall_generator types and constants end
 
+--	PSW types and constants
+--	PSW je entitet koji sadrzi dva entiteta: psw registar i sinhronizaciju upisa.
+	
+--	ovim tipom se opisuje psw registar. N, Z, C i V su najvisa 4 bita.
+	subtype psw_register_t is std_logic_vector(31 downto 0);
+	
+--	konstante koje oznacavaju gde se koji bit nalazi u psw.
+	constant N_POSITION : integer := 31;
+	constant Z_POSITION : integer := 30;
+	constant C_POSITION : integer := 29;
+	constant V_POSITION : integer := 28;
+	
+--	jedan element ulaznih linija u psw synch.
+--	psw_value je nova vrednost za psw koju generise ALU.
+--	pc je pc instrukcije koja je generisala psw.
+--	update_psw je signal koji aktivnom vrednoscu oznacava da je ALU generisao novi psw
+--	(postoje ALU instrukcije koje ne generisu psw).
+	type psw_synch_in_data_t is record
+		psw_value: psw_register_t;
+		update_psw: std_logic;
+	end record psw_synch_in_data_t;
+	
+--	ulazne linije u psw sunch.
+	type psw_synch_in_data_array_t is array(0 to ALU_FUNC_NUM - 1) of psw_synch_in_data_t;
+	
+--	PSW types and constants end
+
 --	General Purpose functions
 	function unsigned_add(data : std_logic_vector; increment : natural) return std_logic_vector;
 	function bool2std_logic(bool : boolean) return std_logic;
