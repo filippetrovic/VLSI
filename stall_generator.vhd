@@ -4,9 +4,9 @@ use ieee.numeric_std.all;
 use work.vlsi_pkg.all;
 
 --	Stall generator je SM koja treba da generise 
---	stall signal, signale za validnost instrukcija (ready signal).
---	Semantika ready signala je promenjena, sada oznacava da se instrukcija
---	treba proslediti u func jedinicu u tom taktu.
+--	stall signal, signale za validnost instrukcija (ready signal) i go signale.
+--	Semantika ready signala je "instrukcija je validna".
+--	go signali se vode na switch, i govore mu kada da propusti instrukciju.
 entity stall_generator is
 	port (
 		clk : in std_logic;
@@ -60,7 +60,7 @@ begin
 	
 	comb : process (PS, in_control) is
 	begin
---		inicijalno stall je neaktivan i obe instrukcije su validne.
+--		inicijalno stall je neaktivan.
 --		Obratiti paznju da u nastavku koda postoje naredbe samo za invertovanje nekog
 --		od signala, znaci ako vidite stall <= '1' i pitate se gde se postavlja
 --		stall <= '0', odgovor je ovde. ;)

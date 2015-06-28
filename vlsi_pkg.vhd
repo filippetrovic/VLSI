@@ -190,12 +190,11 @@ package vlsi_pkg is
 --	Pogledati SM dijagram za stall generator.
 	type hazard_type is (A_type, B_type, C_type, No_hazard);
 	
---	Switch-u je dovoljno da zna op code i da li je instrukcija validna, kao i da li je doslo do nekog hazarda,
---	da bi mogao da generise "go" signal za neku func jedinicu.
-	
+--	Switch-u je dovoljno samo da zna op code da bi mogao da aktivira func jedinicu.
+--	Takodje kroz in_control signale dobija kontrolni signal kada da propusti instrukciju.
 	type switch_in_data_t is record
 		instructions: decoded_instruction_array_t;
---		haz_type: hazard_type; Revizija: Sada se koristi samo ready signal iz SM 
+--		haz_type: hazard_type; Revizija: Sada se koristi samo go signal iz SM 
 	end record switch_in_data_t;
 
 --	Ovim tipom se oznacava da li Fica i Fedja idu u func jedinicu.
@@ -267,8 +266,10 @@ package vlsi_pkg is
 	type instruction_ready_array_t is array(0 to ISSUE_WIDTH-1) of std_logic;
 	
 --	"stall" je izlazni signal i sluzi za blokiranje frontend-a.
---	inst_ready je signal koji se generise ovde (SM) i u odnosu na njega
+--	inst_go je signal koji se generise ovde (SM) i u odnosu na njega
 --	switch propusta na func jedinicu ili ne propusta.
+--	inst_ready je opisan iznad, vodi se na Hazard detector da bi bio svestan ako je jedna instrukcija
+--	blokirana a prva propustena, da u sledecem taktu ne gleda prvu instrkuciju (onu koja je vec propustena)
 	type stall_generator_out_control_t is record
 		stall : std_logic;
 		inst_go: instruction_go_array_t;

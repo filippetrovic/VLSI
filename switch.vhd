@@ -4,12 +4,11 @@ use ieee.numeric_std.all;
 use work.vlsi_pkg.all;
 
 --	switch je deo srednjeg dela procesora. 
---	Na slici (sema arhitekture) je oznacen sa imenom "rasporedjivac".
 --	Uloga: aktivira odgovarajucu func jedinicu u zavisnosti
---	od OP kodova instrukcija i tipa hazarda koji je u toku. Prosledjuje
+--	od OP kodova instrukcija i go signala iz SM. Prosledjuje
 --	dekodovani instrukciju na ulaz func jedinice.
---	Princip: Proverava da li je u toku neki hazard i da li je instrukcija validna.
---	Ako je sve u redu onda se instrukcija na osnovu op_coda moze proslediti.
+--	Princip: Proverava go signal i da li je instrukcija validna.
+--	Ako je sve u aktivno onda se instrukcija na osnovu op_coda moze proslediti.
 entity switch is
 	port (
 		data_in: in switch_in_data_t;
