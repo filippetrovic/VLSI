@@ -292,7 +292,6 @@ package vlsi_pkg is
 	
 --	jedan element ulaznih linija u psw synch.
 --	psw_value je nova vrednost za psw koju generise ALU.
---	pc je pc instrukcije koja je generisala psw.
 --	update_psw je signal koji aktivnom vrednoscu oznacava da je ALU generisao novi psw
 --	(postoje ALU instrukcije koje ne generisu psw).
 	type psw_synch_in_data_t is record
@@ -300,7 +299,7 @@ package vlsi_pkg is
 		update_psw: std_logic;
 	end record psw_synch_in_data_t;
 	
---	ulazne linije u psw sunch.
+--	ulazne linije u psw synch.
 	type psw_synch_in_data_array_t is array(0 to ALU_FUNC_NUM - 1) of psw_synch_in_data_t;
 	
 --	PSW types and constants end
