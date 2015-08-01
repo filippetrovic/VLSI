@@ -93,9 +93,28 @@ begin
 				end if;
 			when C =>
 				out_control.inst_ready <= setReady('1','1');
+--				to sto je memorija zavrsila ne znaci da nema hazarda tipa A ili B.
 				if (in_control.mem_done = '1') then
-					NS <= N;
-					out_control.inst_go <= setGO('1','1');
+					out_control.inst_go <= setGO('1', '1');
+					out_control.stall <= '0';
+					case in_control.haz_type is
+						when A_type =>
+							out_control.stall <= '1';
+							NS <= A;
+							out_control.inst_go <= setGO('1', '0');
+						when B_type =>
+							out_control.stall <= '1';
+							NS <= B;
+							out_control.inst_go <= setGO('1', '0');
+--						ne bi trebalo da se dogodi da postoji tip C posle tipa C.
+						when C_type =>
+							out_control.stall <= '1';
+							NS <= C;
+							out_control.inst_go <= setGO('0', '0');
+						when No_hazard =>
+							NS <= N;
+							out_control.inst_go <= setGO('1', '1');
+					end case;
 				else
 					out_control.stall <= '1';
 					NS <= C;

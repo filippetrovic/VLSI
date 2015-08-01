@@ -135,7 +135,7 @@ package vlsi_pkg is
 	--	broj linija za upis
 	constant WRITE_LINES_NUM : integer := 4;
 
-	--	ovaj tip predstavlja adresu sa koje se cita
+	--	ovaj tip predstavlja adresu registra
 	subtype reg_address is std_logic_vector(NUM_OF_REG_LOG - 1 downto 0);
 
 	--	ovaj tip predstavlja jedan registar
@@ -307,9 +307,35 @@ package vlsi_pkg is
 
 	--	PSW types and constants end
 
+	--	Hazard detector types and constants
+	
+	--	ulazni podaci su dekodovane instrukcije.
+	type haz_detector_in_data_t is record
+		instructions : decoded_instruction_array_t;
+	end record haz_detector_in_data_t;
+	
+	--	inst_ready su ready signali iz SM
+	--	mem_active je signal iz MEM bloka koji oznacava da je MEM blok zauzet.
+	--	mem_reg je registar u koji se dovlaci vrednost iz memorije.	
+	type haz_detector_in_control_t is record
+		inst_ready	: instruction_ready_array_t;
+		mem_busy	: std_logic;
+		mem_load	: std_logic;
+		mem_reg		: reg_address;
+	end record haz_detector_in_control_t;
+	
+	--	izlazni signal je tip hazarda koji se vodi na ulaz SM.	
+	type haz_detector_out_control_t is record
+		haz_type : hazard_type;
+	end record haz_detector_out_control_t;
+	
+	--	Hazard detector types and constants end
+
 	--	General Purpose functions
 	function unsigned_add(data : std_logic_vector; increment : natural) return std_logic_vector;
 	function bool2std_logic(bool : boolean) return std_logic;
+	function std2bool(s : std_logic) return boolean;
+		
 end package vlsi_pkg;
 
 package body vlsi_pkg is
@@ -333,4 +359,14 @@ package body vlsi_pkg is
 		end if;
 	end function bool2std_logic;
 
+	function std2bool(s : std_logic) return boolean is
+		constant b : boolean := false;
+	begin
+		case s is
+			when '0' | 'L' => return false;
+			when '1' | 'H' => return true;
+			when others    => return b;
+		end case;
+	end std2bool;
+	
 end package body vlsi_pkg;
