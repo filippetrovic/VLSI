@@ -1,69 +1,73 @@
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 use work.vlsi_pkg.all;
 
--- ovaj entitet predstavlja prednji kraj procesora, tj interfejs ka
--- instrukcijskoj kes memoriji, if fazu, id fazu, i interfejs ka sredisnjem
--- delu procesora koji je zaduzen za rasporedjivanje, kontrolu harazda i sl.
--- U frontendu nema dohvatanja operanada!
 entity frontend is
 	port(
 		clk         : in  std_logic;
 		rst         : in  std_logic;
 
-		in_data     : in  if_data_in_t;
-		in_control  : in  id_control_in_t;
+		control_in  : in  id_control_in_t;
+		data_in     : in  if_data_in_t;
+		control_out : out if_control_out_t;
+		data_out    : out id_data_out_t;
 
-		mem_address : out address_array_t;
-		out_data    : out id_data_out_t;
-		out_control : out if_control_out_t
+		mem_address : out address_array_t
 	);
 end entity frontend;
 
-architecture RTL of frontend is
-	component id_stage
-		port(clk         : in  std_logic;
-			 rst         : in  std_logic;
-			 in_data     : in  id_data_in_t;
-			 out_data    : out id_data_out_t;
-			 in_control  : in  id_control_in_t;
-			 out_control : out id_control_out_t);
-	end component id_stage;
+architecture arch of frontend is
 	component if_stage
 		port(clk         : in  std_logic;
 			 reset       : in  std_logic;
-			 in_data     : in  if_data_in_t;
-			 out_data    : out if_data_out_t;
-			 in_control  : in  if_control_in_t;
-			 out_control : out if_control_out_t);
+			 control_in  : in  if_control_in_t;
+			 data_in     : in  if_data_in_t;
+			 control_out : out if_control_out_t;
+			 data_out    : out if_data_out_t);
 	end component if_stage;
 
-	signal if_out_data : if_data_out_t;
+	component id_stage
+		port(clk         : in  std_logic;
+			 rst         : in  std_logic;
+			 data_in     : in  id_data_in_t;
+			 data_out    : out id_data_out_t;
+			 control_in  : in  id_control_in_t;
+			 control_out : out id_control_out_t);
+	end component id_stage;
 
-	signal id_data_in    : id_data_in_t;
-	signal if_in_control : if_control_in_t;
-
-	signal id_out_control : id_control_out_t;
+	-- IF stage connections
+	signal if_control_in  : if_control_in_t;
+	signal if_data_out    : if_data_out_t;
+	-- ID stage connections
+	signal id_data_in     : id_data_in_t;
+	signal id_control_out : id_control_out_t;
 
 begin
-	if1 : if_stage
-		port map(clk         => clk,
-			     reset       => rst,
-			     in_data     => in_data,
-			     out_data    => if_out_data,
-			     in_control  => if_in_control,
-			     out_control => out_control);
-	id : id_stage
-		port map(clk         => clk,
-			     rst         => rst,
-			     in_data     => id_data_in,
-			     out_data    => out_data,
-			     in_control  => in_control,
-			     out_control => id_out_control);
-			     
-	id_data_in.instructions <= if_out_data.instructions;
-	if_in_control.jump      <= in_control.jump;
-	if_in_control.stall     <= id_out_control.stall;
-	mem_address             <= if_out_data.mem_address;
+	if_stage_inst : component if_stage
+		port map(
+			clk         => clk,
+			reset       => rst,
+			control_in  => if_control_in,
+			data_in     => data_in,
+			control_out => control_out,
+			data_out    => if_data_out
+		);
 
-end architecture RTL;
+	id_stage_inst : component id_stage
+		port map(
+			clk         => clk,
+			rst         => rst,
+			data_in     => id_data_in,
+			data_out    => data_out,
+			control_in  => control_in,
+			control_out => id_control_out
+		);
+
+	if_control_in.jump      <= control_in.jump;
+	if_control_in.stall     <= id_control_out.stall;
+	id_data_in.instructions <= if_data_out.instructions;
+	mem_address             <= if_data_out.addresses;
+
+end architecture arch;
+

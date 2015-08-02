@@ -3,144 +3,101 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.vlsi_pkg.all;
 
--- if stage predstavlja prvi stepen protocne obrade.
--- if faza na svom kraju ima stage registre.
--- if komunicira sa instrukcojskom kes memorijom, odrzava pc vrednost i
--- prosledjuje nedekodovane instrukcije id fazi.
 entity if_stage is
 	port(
 		clk         : in  std_logic;
 		reset       : in  std_logic;
-		in_data     : in  if_data_in_t;
-		out_data    : out if_data_out_t;
-		in_control  : in  if_control_in_t;
-		out_control : out if_control_out_t
+		control_in  : in  if_control_in_t;
+		data_in     : in  if_data_in_t;
+		control_out : out if_control_out_t;
+		data_out    : out if_data_out_t
 	);
 end entity if_stage;
 
-architecture RTL of if_stage is
-	type pc_register_t is record
-		pc : address_t;
-	end record pc_register_t;
+architecture arch of if_stage is
+	type state is (reseted, working);
+	signal state_reg, state_next : state;
 
-	type inst_register_t is record
-		instructions : undecoded_instruction_array_t;
-	end record inst_register_t;
+	signal inc_pc        : std_logic;
+	signal ld_pc         : std_logic;
+	signal new_pc        : address_t;
+	signal data_out_reg  : if_data_out_t;
+	signal data_out_next : if_data_out_t;
+	signal last_pc       : address_array_t;
+	signal current_pc    : address_array_t;
 
-	--	PC registar
-	signal pc_reg, pc_next               : pc_register_t;
-	--	TODO: ovo mozda nije potrebno, treba razmisliti da li umesto ovoga moze da se koristi (pc_reg - ISSUE_WIDTH)
-	signal last_pc_reg, last_pc_next     : pc_register_t;
-	--	buffer na kraju IF faze
-	signal stage_buf_reg, stage_buf_next : inst_register_t;
-
-	--	sve na 0
-	function reset_pc(init_pc : address_t) return pc_register_t is
-		variable to_ret : pc_register_t;
+	function reset_stage_buffer return if_data_out_t is
+		variable buff : if_data_out_t;
 	begin
-		to_ret.pc := init_pc;
-		return to_ret;
-	end function reset_pc;
+		buff.addresses := (others => (others => '0'));
+		for i in buff.instructions'range loop
+			buff.instructions(i).pc          := (others => '0');
+			buff.instructions(i).instruction := (others => '0');
+			buff.instructions(i).valid       := '0';
+		end loop;
+		return buff;
+	end function reset_stage_buffer;
 
-	--	ovo su neki tmp signali koje je i Zika koristio
-	signal out_data_tmp    : if_data_out_t;
-	signal out_control_tmp : if_control_out_t;
-
-	signal resetFF : std_logic;
 begin
-	clk_proc : process(clk, reset, in_data.init_pc) is
+	pc_reg : entity work.pc_reg
+		port map(
+			clk => clk,
+			inc => inc_pc,
+			ld  => ld_pc,
+			d   => new_pc,
+			q   => current_pc,
+			p   => last_pc
+		);
+
+	process(clk, reset, control_in.jump, current_pc, data_in, data_out_next, state_reg) is
 	begin
+		ld_pc        <= '0';
+		new_pc       <= (others => '-');
+		data_out_reg <= data_out_next;
+
 		if reset = '1' then
-			pc_reg      <= reset_pc(in_data.init_pc);
-			last_pc_reg <= reset_pc(in_data.init_pc);
-			for i in stage_buf_reg.instructions'range loop
-				stage_buf_reg.instructions(i).valid <= '0';
-			end loop;
-			resetFF <= '1';
+			ld_pc         <= '1';
+			new_pc        <= data_in.init_pc;
+			data_out_next <= reset_stage_buffer;
+			state_reg     <= reseted;
+
 		elsif rising_edge(clk) then
-			pc_reg        <= pc_next;
-			stage_buf_reg <= stage_buf_next;
-			last_pc_reg   <= last_pc_next;
-			resetFF       <= '0';
-		end if;
-	end process clk_proc;
-
-	--	ovako Zika radi
-	out_control <= out_control_tmp;
-	out_data    <= out_data_tmp;
-
-	comb : process(pc_reg, stage_buf_reg, in_data, in_control, last_pc_reg, resetFF, reset) is
-	begin
-		pc_next              <= pc_reg;
-		stage_buf_next       <= stage_buf_reg;
-		last_pc_next         <= last_pc_reg;
-		out_control_tmp.read <= '1';
-
-		--		data lines from IF to ID (from stage_buf)
-		for i in out_data_tmp.instructions'range loop
-			out_data_tmp.instructions(i).instruction <= stage_buf_reg.instructions(i).instruction;
-			out_data_tmp.instructions(i).pc          <= stage_buf_reg.instructions(i).pc;
-			out_data_tmp.instructions(i).valid       <= stage_buf_reg.instructions(i).valid;
-		end loop;
-
-		--		data lines from MEM to IF (saved in stage_buf)
-		for i in stage_buf_next.instructions'range loop
-			stage_buf_next.instructions(i).instruction <= in_data.mem_values(i);
-			stage_buf_next.instructions(i).pc          <= unsigned_add(last_pc_reg.pc, i);
-		end loop;
-
-		if in_control.jump = '1' then
-			--			pc next je za ISSUE_WIDTH veci od jump adrese
-			--			jer je jump adresa odmah prosledjena na ulaz memorije
-			pc_next.pc           <= unsigned_add(in_data.jump_address, ISSUE_WIDTH);
-			--			prethodni pc je upravo jump_address
-			last_pc_next.pc      <= in_data.jump_address;
-			out_control_tmp.read <= '1';
-			--			valid = 0  za ovaj takt
-			for i in out_data_tmp.instructions'range loop
-				out_data_tmp.instructions(i).valid <= '0';
-			end loop;
-			--			i za sledeci takt, sledi objasnjenje:
-			--			jump signal iz brunch jedinicice (in_control.jump) traje jednu periodu takta. 
-			--			Znaci da su nama podaci nevalidni kada je in_control.jump == '0' i u sledecem taktu 
-			--			(tada iz memorije pristize instrukcija na koju se skace, ali jos nije na izlazu IF faze).
-			for i in stage_buf_next.instructions'range loop
-				stage_buf_next.instructions(i).valid <= '0';
-			end loop;
-		elsif resetFF = '0' then        -- resetFF omogucava da se posle reseta saceka jos jedan takt
-			for i in stage_buf_next.instructions'range loop
-				stage_buf_next.instructions(i).valid <= '1';
-			end loop;
-
-			if in_control.stall = '1' then
-				pc_next              <= pc_reg;
-				stage_buf_next       <= stage_buf_reg;
-				last_pc_next         <= last_pc_reg;
-				out_control_tmp.read <= '0';
-			else
-				last_pc_next.pc      <= pc_reg.pc;
-				pc_next.pc           <= unsigned_add(pc_reg.pc, ISSUE_WIDTH);
-				out_control_tmp.read <= '1';
+			if state_reg /= reseted then
+				for i in data_out.instructions'range loop
+					data_out_next.instructions(i).pc          <= last_pc(i);
+					data_out_next.instructions(i).instruction <= data_in.mem_values(i);
+					data_out_next.instructions(i).valid       <= '1';
+				end loop;
 			end if;
-		elsif resetFF = '1' and reset = '0' then
-			last_pc_next.pc      <= pc_reg.pc;
-			pc_next.pc           <= unsigned_add(pc_reg.pc, ISSUE_WIDTH);
-			out_control_tmp.read <= '1';
+			if (control_in.stall = '1') or (control_in.jump = '1') then
+				data_out_next <= data_out_reg;
+			else
+				state_reg <= state_next;
+			end if;
 		end if;
 
-		--		data lines from IF to MEM
-
-		if in_control.jump = '1' then
-			--			jump adresa se odmah salje na ulaz memorije => usteda 1 takt			
-			for i in out_data_tmp.mem_address'range loop
-				out_data_tmp.mem_address(i) <= unsigned_add(in_data.jump_address, i);
-			end loop;
+		if control_in.jump = '1' then
+			ld_pc                              <= '1';
+			data_out_reg.instructions(0).valid <= '0';
+			data_out_reg.instructions(1).valid <= '0';
+			data_out_next.addresses(0)         <= data_in.jump_address;
+			data_out_next.addresses(1)         <= std_logic_vector(unsigned(data_in.jump_address) + 1);
+			new_pc                             <= std_logic_vector(unsigned(data_in.jump_address) + 2);
 		else
-			for i in out_data_tmp.mem_address'range loop
-				out_data_tmp.mem_address(i) <= unsigned_add(pc_reg.pc, i);
-			end loop;
+			data_out_next.addresses <= current_pc;
 		end if;
 
-	end process comb;
+		case state_reg is
+			when reseted =>
+				state_next <= working;
+			when working =>
+				state_next <= working;
+		end case;
 
-end architecture RTL;
+	end process;
+
+	data_out         <= data_out_reg;
+	control_out.read <= not control_in.stall;
+	inc_pc           <= not control_in.stall;
+
+end architecture arch;
