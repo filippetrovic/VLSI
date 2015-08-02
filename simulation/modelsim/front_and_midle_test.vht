@@ -101,7 +101,12 @@ begin
 	process
 	begin
 		in_control.jump  <= '0';
-
+		
+		mid_mem_busy <= '0';
+		mid_mem_load <= '0';
+		mid_mem_done <= '0';
+		mid_mem_reg  <= (others => '-');
+		
 		reset <= '1';
 		wait until rising_edge(clk);
 		reset <= '0';
@@ -113,13 +118,46 @@ begin
 		wait until rising_edge(clk);
 		wait until rising_edge(clk);
 		wait until rising_edge(clk);
+		wait until rising_edge(clk);
+		
+		mid_mem_busy <= '1';
+		mid_mem_load <= '0';
+		mid_mem_done <= '0';
+		mid_mem_reg  <= "00010";
+		
+		wait until rising_edge(clk);
+		wait until rising_edge(clk);
+		wait until rising_edge(clk);
+		
+		mid_mem_busy <= '0';
+		mid_mem_load <= '0';
+		mid_mem_done <= '1';
+		mid_mem_reg  <= "-----";
+		
+		wait until rising_edge(clk);
+		mid_mem_busy <= '1';
+		mid_mem_load <= '1';
+		mid_mem_done <= '0';
+		mid_mem_reg  <= "00000";
+		
+		wait until rising_edge(clk);
+		wait until rising_edge(clk);
+		wait until rising_edge(clk);
+		
+		mid_mem_busy <= '0';
+		mid_mem_load <= '0';
+		mid_mem_done <= '1';
+		mid_mem_reg  <= "-----";
+		
+		wait until rising_edge(clk);
+		mid_mem_done <= '0';
 		
 		wait;
 	end process;
 
 	-- simulacija memorije
 	init : process is
-		file f : text open read_mode is "mem_in.txt";
+		file f : text open read_mode is "front_and_midle_test_mem_in.txt";
 
 		variable line_str : line;
 		variable address  : address_t;
