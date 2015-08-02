@@ -47,6 +47,17 @@ architecture RTL of hazard_detector is
 		end if;
 	end function get_inst_imm;
 	
+--	funkcija koja vraca bool u zavisnosti da li instrukcija koristi r1
+	function use_r1 (op : mnemonic_t) return boolean is
+	begin
+		if op = NOT_M or op = MOV_M or op = SIMOV_M or op = IMOV_M then
+			return false;
+		else
+			return true;
+		end if;
+	end function use_r1;
+	
+	
 begin
 	detector : process (in_data, in_control) is
 		variable inst_kind          : inst_kind_array_t;
@@ -58,7 +69,9 @@ begin
 --		da li instrukcija menja psw
 		variable inst_1_changes_psw : boolean;
 --		da li instrukcija cita psw
-		variable inst_2_reads_psw 	: boolean;	
+		variable inst_2_reads_psw 	: boolean;
+--		da li instrukcija koristi r1
+		variable inst_use_r1		: boolean_array_t;	
 	begin
 --		inicijalizacija promenljivih
 --		validnost je AND signala valid iz SM i ID
@@ -74,6 +87,11 @@ begin
 --		Instrukcija je imm ako ima odgovarajuci op kod.
 		for i in inst_imm'range loop
 			inst_imm(i) := get_inst_imm(in_data.instructions(i).op);
+		end loop;
+
+--		Instrukcija koristi r1 ako nije neki MOV ili nije NOT
+		for i in inst_use_r1'range loop
+			inst_use_r1(i) := use_r1(in_data.instructions(i).op);
 		end loop;
 
 --		psw menjaju sve instrukcije od SUB do SSBC.
@@ -102,7 +120,7 @@ begin
 
 --		if-elsif-else konstrukt za detekciju hazarda. Hazardi su poredjani po priortetima.
 		if inst_valid(0) and inst_valid(1) and in_control.mem_load = '1' and inst_kind(0) = ALU_INST and
-			(in_data.instructions(0).r1 = in_control.mem_reg or 
+			((in_data.instructions(0).r1 = in_control.mem_reg and inst_use_r1(0) = true) or 
 			(in_data.instructions(0).r2 =  in_control.mem_reg and inst_imm(0) = false) or
 			in_data.instructions(0).r3 =  in_control.mem_reg) then
 			
@@ -122,7 +140,7 @@ begin
 			out_control.haz_type <= C_Type;
 			
 		elsif inst_valid(0) and inst_valid(1) and in_data.instructions(0).op = LOAD_M and inst_kind(1) = ALU_INST and 
-			(in_data.instructions(0).r3 = in_data.instructions(1).r1 or 
+			((in_data.instructions(0).r3 = in_data.instructions(1).r1 and inst_use_r1(1) = true) or 
 			(in_data.instructions(0).r3 = in_data.instructions(1).r2 and inst_imm(1) = false) or 
 			in_data.instructions(0).r3 = in_data.instructions(1).r3) then
 		
@@ -143,7 +161,7 @@ begin
 			out_control.haz_type <= B_type;
 			
 		elsif inst_valid(0) and inst_valid(1) and in_control.mem_load = '1' and inst_kind(1) = ALU_INST and
-			(in_data.instructions(1).r1 = in_control.mem_reg or 
+			((in_data.instructions(1).r1 = in_control.mem_reg and inst_use_r1(1) = true) or 
 			(in_data.instructions(1).r2 =  in_control.mem_reg and inst_imm(1) = false) or
 			in_data.instructions(1).r3 =  in_control.mem_reg) then
 			
@@ -164,7 +182,7 @@ begin
 			
 		elsif inst_valid(0) and inst_valid(1) and inst_kind(0) = ALU_INST and 
 			in_data.instructions(0).op /= CMP_M and
-			(in_data.instructions(0).r3 = in_data.instructions(1).r1 or 
+			((in_data.instructions(0).r3 = in_data.instructions(1).r1 and inst_use_r1(1) = true) or 
 			(in_data.instructions(0).r3 = in_data.instructions(1).r2 and inst_imm(1) = false)) then									
 				
 			--	hazard tip A 1
