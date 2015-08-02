@@ -15,10 +15,10 @@ architecture test_arch of frontend_test is
 	component frontend
 		port(clk         : in  std_logic;
 			 rst         : in  std_logic;
-			 control_in  : in  id_control_in_t;
-			 data_in     : in  if_data_in_t;
-			 control_out : out if_control_out_t;
-			 data_out    : out id_data_out_t;
+			 in_control  : in  id_control_in_t;
+			 in_data     : in  if_data_in_t;
+			 out_control : out if_control_out_t;
+			 out_data    : out id_data_out_t;
 			 mem_address : out address_array_t);
 	end component frontend;
 
@@ -36,14 +36,15 @@ architecture test_arch of frontend_test is
 	signal mem_address : address_array_t;
 
 begin
+	
 	frontend_inst : component frontend
 		port map(
 			clk         => clk,
 			rst         => rst,
-			control_in  => control_in,
-			data_in     => data_in,
-			control_out => control_out,
-			data_out    => data_out,
+			in_control  => control_in,
+			in_data     => data_in,
+			out_control => control_out,
+			out_data    => data_out,
 			mem_address => mem_address
 		);
 

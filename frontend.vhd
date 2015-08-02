@@ -8,10 +8,10 @@ entity frontend is
 		clk         : in  std_logic;
 		rst         : in  std_logic;
 
-		control_in  : in  id_control_in_t;
-		data_in     : in  if_data_in_t;
-		control_out : out if_control_out_t;
-		data_out    : out id_data_out_t;
+		in_control  : in  id_control_in_t;
+		in_data     : in  if_data_in_t;
+		out_control : out if_control_out_t;
+		out_data    : out id_data_out_t;
 
 		mem_address : out address_array_t
 	);
@@ -49,8 +49,8 @@ begin
 			clk         => clk,
 			reset       => rst,
 			control_in  => if_control_in,
-			data_in     => data_in,
-			control_out => control_out,
+			data_in     => in_data,
+			control_out => out_control,
 			data_out    => if_data_out
 		);
 
@@ -59,15 +59,14 @@ begin
 			clk         => clk,
 			rst         => rst,
 			data_in     => id_data_in,
-			data_out    => data_out,
-			control_in  => control_in,
+			data_out    => out_data,
+			control_in  => in_control,
 			control_out => id_control_out
 		);
 
-	if_control_in.jump      <= control_in.jump;
+	if_control_in.jump      <= in_control.jump;
 	if_control_in.stall     <= id_control_out.stall;
 	id_data_in.instructions <= if_data_out.instructions;
 	mem_address             <= if_data_out.addresses;
 
 end architecture arch;
-
