@@ -40,15 +40,18 @@ architecture arch of mem_unit is
 
 	signal count_reg, count_next : natural;
 
+	signal mem_done_reg, mem_done_next : std_logic;
+
 begin
 	process(clk, rst) is
 	begin
 		if rst = '1' then
-			count_reg <= 0;
-			state_reg <= idle;
+			count_reg    <= 0;
+			state_reg    <= idle;
+			mem_done_reg <= '0';
 		elsif rising_edge(clk) then
 			if state_reg = idle then
-				if std2bool(in_control.go) then
+				if std2bool(in_control.go) and in_data.instruction.valid = '1' then
 					in_buffer <= in_data;
 					state_reg <= busy;
 					count_reg <= 0;
@@ -59,8 +62,11 @@ begin
 				state_reg <= state_next;
 				count_reg <= count_next;
 			end if;
+			mem_done_reg <= mem_done_next;
 		end if;
 	end process;
+
+	out_control.mem_done <= mem_done_reg;
 
 	process(state_reg, in_buffer, count_reg, in_data) is
 	begin
@@ -76,7 +82,10 @@ begin
 		out_data.data        <= (others => '0');
 		out_data.mem_reg     <= (others => '0');
 
-		count_next <= 0; -- podrazumevano
+		-- podrazumevano
+		count_next    <= 0;
+		-- podrazumevano
+		mem_done_next <= '0';
 
 		case state_reg is
 			when idle =>
@@ -90,7 +99,7 @@ begin
 				-- adresu iz ulaznog bafera prosledjujemo na izlaz
 				out_data.address     <= in_buffer.address;
 
-				state_next <= busy;	
+				state_next <= busy;
 
 				if in_buffer.instruction.op = LOAD_M then
 					out_control.mem_load <= '1';
@@ -111,7 +120,9 @@ begin
 
 						-- pitanje je da li moze da se ustedi takt tako sto bi se iz busy islo ponovo
 						-- u busy stanje
-						state_next <= idle;
+						state_next    <= idle;
+						-- ovaj signal ce da traje jedan takt nakon ukidanja mem_busy signala
+						mem_done_next <= '1';
 					end if;
 				elsif in_data.instruction.op = STORE_M then
 					out_control.mem_load <= '0';
@@ -123,7 +134,9 @@ begin
 						out_control.wr <= '1';
 						out_data.data  <= in_buffer.reg_value;
 					elsif count_reg = (MEM_ACCESS_TIME - 1) then
-						state_next <= idle;
+						state_next    <= idle;
+						-- ovaj signal ce da traje jedan takt nakon ukidanja mem_busy signala
+						mem_done_next <= '1';
 					end if;
 				end if;
 

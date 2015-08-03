@@ -24,9 +24,10 @@ add wave -noupdate -label reg_value -radix hexadecimal /mem_unit_test/out_data.w
 add wave -noupdate -label valid -radix hexadecimal /mem_unit_test/out_data.wsu_data.valid
 add wave -noupdate -divider {Kontrolni signali}
 add wave -noupdate -label mem_load -radix hexadecimal /mem_unit_test/out_control.mem_load
-add wave -noupdate -label mem_busy -radix hexadecimal /mem_unit_test/out_control.mem_busy
+add wave -noupdate -color Orange -label mem_busy -radix hexadecimal /mem_unit_test/out_control.mem_busy
 add wave -noupdate -label rd -radix hexadecimal /mem_unit_test/out_control.rd
 add wave -noupdate -label wr -radix hexadecimal /mem_unit_test/out_control.wr
+add wave -noupdate -color Orange -label mem_done /mem_unit_test/out_control.mem_done
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {19751 ps} 0}
 quietly wave cursor active 1

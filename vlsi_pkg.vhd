@@ -434,6 +434,9 @@ package vlsi_pkg is
 		-- signali ka hazard detektoru
 		mem_load : std_logic;
 		mem_busy : std_logic;
+		-- traje jedan takt nakon sto se ukine signal mem_busy
+		-- vodi se na stall generator
+		mem_done : std_logic;
 		-- signali ka memoriji podataka
 		rd       : std_logic;
 		wr       : std_logic;
