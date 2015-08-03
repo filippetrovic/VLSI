@@ -379,11 +379,15 @@ package vlsi_pkg is
 
 	--	Middle - control types and constants	
 	
+	--	ulazni tip za Middle. 
+	--	from_id su linije sa Frontenda, from_wsu su linije iz backenda, tacnije WSU.	
 	type middle_in_data_t is record
 		from_id : id_data_out_t;
 		from_wsu : write_data_array_t;
 	end record middle_in_data_t;
 	
+	-- ulazne kontrolne linije za middle.
+	--	TODO: Treba prebaciti na tip koriscen u mem_unit.		
 	type middle_in_control_t is record
 		mem_busy : std_logic;
 		mem_load : std_logic;
@@ -391,12 +395,17 @@ package vlsi_pkg is
 		mem_reg : reg_address;
 	end record middle_in_control_t;
 	
+	--	Izlazni kontrolni signali.
+	--	stall se vodi na frontend.	
 	type middle_out_control_t is record
 		stall : std_logic;
 	end record middle_out_control_t;
 	
 	type jzp_out_data_array_t is array(0 to GPR_READ_LINES_NUM - 1) of jzp_out_data_t;
 	
+	-- Izlazne linije podataka.
+	--	func_control su linije koje idu sa Swtich-a, tamo su opisane.
+	--	operand_values su linije koje idu sa JPZ-ova. Niz operanada za func jedinice.	
 	type middle_out_data_t is record
 		func_control : func_units_control_t;
 		operand_values : jzp_out_data_array_t;
