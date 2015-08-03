@@ -222,12 +222,17 @@ package vlsi_pkg is
 
 	--	Svaki od cinilaca rekorda se vodi na odgovarajucu func jedinicu. Signal '1' oznacava da func ima validne
 	--	vrednosti na svojim ulazima i da treba da pocne sa izvrsavanjem.	
-	type switch_out_data_t is record
+	type func_units_control_t is record
 		alu_control : func_unit_input_control_array_t;
 		br_control  : func_unit_input_control_t;
 		mem_control : func_unit_input_control_t;
-		r1          : reg_address;
-		r3          : reg_address;
+	end record func_units_control_t;
+	
+	--	Izlazni podaci iz switcha. registri se vode na JZP, a func_control na backend.	
+	type switch_out_data_t is record
+		func_control : func_units_control_t;
+		r1           : reg_address;
+		r3           : reg_address;
 	end record switch_out_data_t;
 
 	--	Switch types and constants end
@@ -374,6 +379,29 @@ package vlsi_pkg is
 
 	--	ALU unit types end	
 
+	--	Middle - control types and constants	
+	
+	type middle_in_data_t is record
+		from_id : id_data_out_t;
+	end record middle_in_data_t;
+	
+	type middle_in_control_t is record
+		mem_busy : std_logic;
+		mem_load : std_logic;
+		mem_done : std_logic;
+		mem_reg : reg_address;
+	end record middle_in_control_t;
+	
+	type middle_out_control_t is record
+		stall : std_logic;
+	end record middle_out_control_t;
+	
+	type middle_out_data_t is record
+		func_control : func_units_control_t;
+	end record middle_out_data_t;
+	
+	--	Middle - control types and constants end
+	
 	--	General Purpose functions
 	function unsigned_add(data : std_logic_vector; increment : natural) return std_logic_vector;
 	function bool2std_logic(bool : boolean) return std_logic;

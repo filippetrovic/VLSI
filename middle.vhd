@@ -3,20 +3,18 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.vlsi_pkg.all;
 
-entity midle is
+entity middle is
 	port (
 		clk : in std_logic;
 		rst : in std_logic;
-		midle_in_data : in id_data_out_t;
-		midle_out_stall : out std_logic;
-		midle_mem_busy : in std_logic;
-		midle_mem_load : in std_logic;
-		midle_mem_done : in std_logic;
-		midle_mem_reg : in reg_address
+		in_data : in id_data_out_t;
+		in_control : in middle_in_control_t;
+		out_data : out middle_out_data_t;
+		out_control : out middle_out_control_t
 	);
-end entity midle;
+end entity middle;
 
-architecture RTL of midle is
+architecture RTL of middle is
 	component hazard_detector
 		port(in_data     : in  haz_detector_in_data_t;
 			 in_control  : in  haz_detector_in_control_t;
@@ -37,6 +35,15 @@ architecture RTL of midle is
 	signal stall_in_control : stall_generator_in_control_t;
 	signal stall_out_control : stall_generator_out_control_t;
 	
+	component switch
+		port(data_in    : in  switch_in_data_t;
+			 control_in : in  switch_in_control_t;
+			 data_out   : out switch_out_data_t);
+	end component switch;
+	
+	signal switch_in_data : switch_in_data_t;
+	signal switch_in_control : switch_in_control_t;
+	signal switch_out_data : switch_out_data_t;
 begin
 	
 	haz_d: component hazard_detector
@@ -46,11 +53,11 @@ begin
 			out_control => haz_out_control
 		);
 	
-	haz_in_data.instructions <= midle_in_data.instructions;	
+	haz_in_data.instructions <= in_data.instructions;	
 	haz_in_control.inst_ready <= stall_out_control.inst_ready;
-	haz_in_control.mem_busy <= midle_mem_busy;
-	haz_in_control.mem_load <= midle_mem_load;
-	haz_in_control.mem_reg <= midle_mem_reg;
+	haz_in_control.mem_busy <= in_control.mem_busy;
+	haz_in_control.mem_load <= in_control.mem_load;
+	haz_in_control.mem_reg <= in_control.mem_reg;
 	
 	stall_g: component stall_generator
 		port map(
@@ -61,7 +68,18 @@ begin
 		);
 	
 	stall_in_control.haz_type <= haz_out_control.haz_type;
-	stall_in_control.mem_done <= midle_mem_done;
-	midle_out_stall <= stall_out_control.stall;
+	stall_in_control.mem_done <= in_control.mem_done;
+	out_control.stall <= stall_out_control.stall;
 	
+	sw : component switch
+		port map(
+			data_in    => switch_in_data,
+			control_in => switch_in_control,
+			data_out   => switch_out_data
+		);
+	
+	switch_in_data.instructions <= in_data.instructions;
+	switch_in_control.inst_go <= stall_out_control.inst_go;
+	out_data.func_control <= switch_out_data.func_control;
+
 end architecture RTL;

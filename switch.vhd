@@ -42,16 +42,16 @@ begin
 		begin
 			case to_integer(unsigned(inst)) is
 				when to_integer(unsigned(AND_M)) to to_integer(unsigned(SIMOV_M)) =>
-					data_out.alu_control(instruction_num).go <= '1';
-					data_out.alu_control(instruction_num).instruction <= data_in.instructions(instruction_num);
+					data_out.func_control.alu_control(instruction_num).go <= '1';
+					data_out.func_control.alu_control(instruction_num).instruction <= data_in.instructions(instruction_num);
 				when to_integer(unsigned(LOAD_M)) | to_integer(unsigned(STORE_M)) =>
-					data_out.mem_control.go <= '1';
-					data_out.mem_control.instruction <= data_in.instructions(instruction_num);
+					data_out.func_control.mem_control.go <= '1';
+					data_out.func_control.mem_control.instruction <= data_in.instructions(instruction_num);
 					data_out.r1 <= data_in.instructions(instruction_num).r1;
 					data_out.r3 <= data_in.instructions(instruction_num).r3;
 				when to_integer(unsigned(BEQ_M)) to to_integer(unsigned(BLAL_M))  =>
-					data_out.br_control.go <= '1';
-					data_out.br_control.instruction <= data_in.instructions(instruction_num);
+					data_out.func_control.br_control.go <= '1';
+					data_out.func_control.br_control.instruction <= data_in.instructions(instruction_num);
 				when others => null;
 			end case;
 		end procedure activate_func_unit;
@@ -59,14 +59,14 @@ begin
 		data_out.r1 <= "-----";
 		data_out.r3 <= "-----";
 		
-		for i in data_out.alu_control'range loop
-			data_out.alu_control(i).go <= '0';
-			data_out.alu_control(i).instruction <= not_important;
+		for i in data_out.func_control.alu_control'range loop
+			data_out.func_control.alu_control(i).go <= '0';
+			data_out.func_control.alu_control(i).instruction <= not_important;
 		end loop;
-		data_out.br_control.go <= '0';
-		data_out.br_control.instruction <= not_important;
-		data_out.mem_control.go <= '0';
-		data_out.mem_control.instruction <= not_important;
+		data_out.func_control.br_control.go <= '0';
+		data_out.func_control.br_control.instruction <= not_important;
+		data_out.func_control.mem_control.go <= '0';
+		data_out.func_control.mem_control.instruction <= not_important;
 		
 		if control_in.inst_go(0) = '1' AND data_in.instructions(0).valid = '1' then
 			activate_func_unit(data_in.instructions(0).op, 0);
