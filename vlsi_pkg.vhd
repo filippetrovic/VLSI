@@ -50,8 +50,6 @@ package vlsi_pkg is
 
 	-- IF STAGE types end
 
-<<<<<<< HEAD
-
 	--	RegFile types and constants
 	--	sirina za adresu	
 	constant NUM_OF_REG_LOG : integer := 5;
@@ -103,10 +101,8 @@ package vlsi_pkg is
 
 	--	RegFile types and constants end
 
-	--	ID stage types
-=======
+	
 	-- ID STAGE types
->>>>>>> d61998a07c568b677da3d712426ae136cde732c7
 
 	type id_data_in_t is record
 		instructions : undecoded_instruction_array_t;
