@@ -109,6 +109,9 @@ begin
 					if count_reg = 0 then
 						-- aktiviramo rd samo u prvom taktu, u ostalim drzimo na neaktivnoj vrednosti
 						out_control.rd <= '1';
+					elsif count_reg = MEM_ACCESS_TIME then
+						-- ovaj signal ce da traje jedan takt nakon ukidanja mem_busy signala
+						mem_done_next <= '1';
 					elsif count_reg = (MEM_ACCESS_TIME + 1) then
 						-- aktiviramo odgovarajuce kontrolne signale i
 						-- prospustamo podatak sa izlaza memorije direktno na wsu
@@ -121,10 +124,13 @@ begin
 						-- pitanje je da li moze da se ustedi takt tako sto bi se iz busy islo ponovo
 						-- u busy stanje
 						state_next    <= idle;
-						-- ovaj signal ce da traje jedan takt nakon ukidanja mem_busy signala
-						mem_done_next <= '1';
+						
+						-- povlacenje mem_load i mem_busy u taktu kada imamo
+						-- raspoloziv podatak od strane memorije
+						out_control.mem_load <= '0';
+						out_control.mem_busy <= '0';
 					end if;
-				elsif in_data.instruction.op = STORE_M then
+				elsif in_buffer.instruction.op = STORE_M then
 					out_control.mem_load <= '0';
 					-- uvek na neaktivnoj vrednosti osim u prvoj periodi signala takta
 					out_control.wr       <= '0';
