@@ -347,7 +347,7 @@ package vlsi_pkg is
 	end record branch_unit_data_out_t;
 
 	type branch_unit_control_in_t is record
-		active : std_logic;
+		go : std_logic;
 	end record branch_unit_control_in_t;
 
 	type branch_unit_control_out_t is record

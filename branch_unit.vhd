@@ -40,12 +40,14 @@ architecture arch of branch_unit is
 	signal link_address : address_t;
 
 	signal in_buffer : branch_unit_data_in_t;
+	signal in_ctrl_buffer : branch_unit_control_in_t;
 
 begin
 	process(clk) is
 	begin
 		if rising_edge(clk) then
 			in_buffer <= data_in;
+			in_ctrl_buffer <= control_in;
 		end if;
 	end process;
 
@@ -54,7 +56,7 @@ begin
 	C <= in_buffer.psw(C_POSITION);
 	V <= in_buffer.psw(V_POSITION);
 
-	ctrl : process(C, N, V, Z, jump, jump_address, link_address, wr, control_in.active, in_buffer, rst) is
+	ctrl : process(C, N, V, Z, jump, jump_address, link_address, wr, in_ctrl_buffer.go, in_buffer, rst) is
 	begin
 		
 		wr           <= '0';
@@ -68,7 +70,7 @@ begin
 			control_out.wr   <= '0';
 			data_out         <= reset_data_out;
 
-		elsif (in_buffer.instruction.valid = '1') and (control_in.active = '1') then
+		elsif (in_buffer.instruction.valid = '1') and (in_ctrl_buffer.go = '1') then
 			case in_buffer.instruction.op is
 				when BEQ_M =>
 					if std2bool(Z) then

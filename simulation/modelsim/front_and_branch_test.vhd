@@ -136,7 +136,7 @@ begin
 	begin
 		
 		fe_control_in.stall  <= '0';
-		br_control_in.active <= '1';
+		br_control_in.go <= '1';
 
 		wait until mem_init_done = '1';
 
