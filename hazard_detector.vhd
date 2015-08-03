@@ -129,7 +129,7 @@ begin
 				
 		elsif inst_valid(0) and inst_valid(1) and in_control.mem_load = '1' and 
 			in_data.instructions(0).op = BLAL_M and
-			in_control.mem_reg = std_logic_vector(to_unsigned(31,reg_num_t'length)) then
+			in_control.mem_reg = std_logic_vector(to_unsigned(31,reg_address'length)) then
 			
 			--	hazard tip C 1 (samo za Fica je BR instrukcija koja pise u link registar)
 			out_control.haz_type <= C_type;
@@ -150,7 +150,7 @@ begin
 		
 		elsif inst_valid(0) and inst_valid(1) and in_data.instructions(0).op = LOAD_M and 
 			in_data.instructions(1).op = BLAL_M and 
-			in_data.instructions(0).r3 = std_logic_vector(to_unsigned(31,reg_num_t'length)) then
+			in_data.instructions(0).r3 = std_logic_vector(to_unsigned(31,reg_address'length)) then
 			
 			--	hazard tip B 1 (samo kada je Fedja BR koji pise u link registar)
 			out_control.haz_type <= B_type;
@@ -170,7 +170,7 @@ begin
 				
 		elsif inst_valid(0) and inst_valid(1) and in_control.mem_load = '1' and 
 			in_data.instructions(1).op = BLAL_M and
-			in_control.mem_reg = std_logic_vector(to_unsigned(31,reg_num_t'length)) then
+			in_control.mem_reg = std_logic_vector(to_unsigned(31,reg_address'length)) then
 			
 			--	hazard tip B 3 (samo za Fedja BR instrukcija koja pise u link registar)
 			out_control.haz_type <= B_type;

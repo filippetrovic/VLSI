@@ -50,77 +50,6 @@ package vlsi_pkg is
 
 	--	if stage types end
 
-	--	ID stage types
-
-	type id_data_in_t is record
-		instructions : undecoded_instruction_array_t;
-	end record id_data_in_t;
-
-	type id_control_in_t is record
-		stall : std_logic;
-		jump  : std_logic;
-	end record id_control_in_t;
-
-	type id_control_out_t is record
-		stall : std_logic;
-	end record id_control_out_t;
-
-	subtype mnemonic_t is std_logic_vector(4 downto 0);
-	--	instruckcije za obradu podataka
-	constant AND_M   : mnemonic_t := "00000";
-	constant SUB_M   : mnemonic_t := "00001";
-	constant ADD_M   : mnemonic_t := "00010";
-	constant ADC_M   : mnemonic_t := "00011";
-	constant SBC_M   : mnemonic_t := "00100";
-	constant CMP_M   : mnemonic_t := "00101";
-	constant SSUB_M  : mnemonic_t := "00110";
-	constant SADD_M  : mnemonic_t := "00111";
-	constant SADC_M  : mnemonic_t := "01000";
-	constant SSBC_M  : mnemonic_t := "01001";
-	constant MOV_M   : mnemonic_t := "01010";
-	constant NOT_M   : mnemonic_t := "01011";
-	constant SL_M    : mnemonic_t := "01100";
-	constant SR_M    : mnemonic_t := "01101";
-	constant ASR_M   : mnemonic_t := "01110";
-	--	instrukcije za obradu podataka sa neposrednim operandom
-	constant IMOV_M  : mnemonic_t := "01111";
-	constant SIMOV_M : mnemonic_t := "10000";
-	--	laod/store
-	constant LOAD_M  : mnemonic_t := "10100";
-	constant STORE_M : mnemonic_t := "10101";
-	--	instrukcije skoka
-	constant BEQ_M   : mnemonic_t := "11000";
-	constant BGT_M   : mnemonic_t := "11001";
-	constant BHI_M   : mnemonic_t := "11010";
-	constant BAL_M   : mnemonic_t := "11011";
-	constant BLAL_M  : mnemonic_t := "11100";
-	--	stop instrukcija
-	constant STOP_M  : mnemonic_t := "11111";
-	--	error (invalid opcode)
-	constant ERROR_M : mnemonic_t := "10001";
-
-	subtype reg_num_t is std_logic_vector(4 downto 0);
-	subtype immediate_t is std_logic_vector(16 downto 0);
-	subtype jump_offset_t is std_logic_vector(26 downto 0);
-
-	type decoded_instruction_t is record
-		pc     : address_t;
-		op     : mnemonic_t;
-		r1     : reg_num_t;
-		r2     : reg_num_t;
-		r3     : reg_num_t;
-		imm    : immediate_t;
-		offset : jump_offset_t;
-		valid  : std_logic;
-	end record decoded_instruction_t;
-
-	type decoded_instruction_array_t is array (0 to ISSUE_WIDTH - 1) of decoded_instruction_t;
-
-	type id_data_out_t is record
-		instructions : decoded_instruction_array_t;
-	end record id_data_out_t;
-
-	--	ID stage types end
 
 	--	RegFile types and constants
 	--	sirina za adresu	
@@ -172,6 +101,78 @@ package vlsi_pkg is
 	end record gpr_out_data_t;
 
 	--	RegFile types and constants end
+
+	--	ID stage types
+
+	type id_data_in_t is record
+		instructions : undecoded_instruction_array_t;
+	end record id_data_in_t;
+
+	type id_control_in_t is record
+		stall : std_logic;
+		jump  : std_logic;
+	end record id_control_in_t;
+
+	type id_control_out_t is record
+		stall : std_logic;
+	end record id_control_out_t;
+
+	subtype mnemonic_t is std_logic_vector(4 downto 0);
+	--	instruckcije za obradu podataka
+	constant AND_M   : mnemonic_t := "00000";
+	constant SUB_M   : mnemonic_t := "00001";
+	constant ADD_M   : mnemonic_t := "00010";
+	constant ADC_M   : mnemonic_t := "00011";
+	constant SBC_M   : mnemonic_t := "00100";
+	constant CMP_M   : mnemonic_t := "00101";
+	constant SSUB_M  : mnemonic_t := "00110";
+	constant SADD_M  : mnemonic_t := "00111";
+	constant SADC_M  : mnemonic_t := "01000";
+	constant SSBC_M  : mnemonic_t := "01001";
+	constant MOV_M   : mnemonic_t := "01010";
+	constant NOT_M   : mnemonic_t := "01011";
+	constant SL_M    : mnemonic_t := "01100";
+	constant SR_M    : mnemonic_t := "01101";
+	constant ASR_M   : mnemonic_t := "01110";
+	--	instrukcije za obradu podataka sa neposrednim operandom
+	constant IMOV_M  : mnemonic_t := "01111";
+	constant SIMOV_M : mnemonic_t := "10000";
+	--	laod/store
+	constant LOAD_M  : mnemonic_t := "10100";
+	constant STORE_M : mnemonic_t := "10101";
+	--	instrukcije skoka
+	constant BEQ_M   : mnemonic_t := "11000";
+	constant BGT_M   : mnemonic_t := "11001";
+	constant BHI_M   : mnemonic_t := "11010";
+	constant BAL_M   : mnemonic_t := "11011";
+	constant BLAL_M  : mnemonic_t := "11100";
+	--	stop instrukcija
+	constant STOP_M  : mnemonic_t := "11111";
+	--	error (invalid opcode)
+	constant ERROR_M : mnemonic_t := "10001";
+
+	subtype immediate_t is std_logic_vector(16 downto 0);
+	subtype jump_offset_t is std_logic_vector(26 downto 0);
+
+	type decoded_instruction_t is record
+		pc     : address_t;
+		op     : mnemonic_t;
+		r1     : reg_address;
+		r2     : reg_address;
+		r3     : reg_address;
+		imm    : immediate_t;
+		offset : jump_offset_t;
+		valid  : std_logic;
+	end record decoded_instruction_t;
+
+	type decoded_instruction_array_t is array (0 to ISSUE_WIDTH - 1) of decoded_instruction_t;
+
+	type id_data_out_t is record
+		instructions : decoded_instruction_array_t;
+	end record id_data_out_t;
+
+	--	ID stage types end
+
 
 	--	WriteSinhUnit types and constants
 
@@ -226,8 +227,8 @@ package vlsi_pkg is
 		alu_control : func_unit_input_control_array_t;
 		br_control  : func_unit_input_control_t;
 		mem_control : func_unit_input_control_t;
-		r1          : reg_num_t;
-		r3          : reg_num_t;
+		r1          : reg_address;
+		r3          : reg_address;
 	end record switch_out_data_t;
 
 	--	Switch types and constants end
