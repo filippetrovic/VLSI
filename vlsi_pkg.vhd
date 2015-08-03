@@ -58,7 +58,7 @@ package vlsi_pkg is
 	constant REGISTER_WIDTH : integer := 32;
 
 	--	broj linija za citanje
-	constant READ_LINES_NUM : integer := 6;
+	constant GPR_READ_LINES_NUM : integer := 6;
 
 	--	broj linija za upis
 	constant WRITE_LINES_NUM : integer := 4;
@@ -73,10 +73,10 @@ package vlsi_pkg is
 	type registers is array (0 to 31) of gp_register;
 
 	--	READ_LINES_NUM linija za adresu za citanje
-	type read_address_array_t is array (0 to READ_LINES_NUM - 1) of reg_address;
+	type read_address_array_t is array (0 to GPR_READ_LINES_NUM - 1) of reg_address;
 
 	--	READ_LINES_NUM linija za procitanu vrednost
-	type grp_output_value_array_t is array (0 to READ_LINES_NUM - 1) of gp_register;
+	type grp_output_value_array_t is array (0 to GPR_READ_LINES_NUM - 1) of gp_register;
 
 	--	adresa, vrednost i write signal za jedan upis
 	type write_data_t is record
@@ -250,10 +250,8 @@ package vlsi_pkg is
 
 	--	Izlazni tip podataka za jzp. "out_value" je (aktuelna) vrednost registra,
 	--	tj. ono sto jzp prosledjuje na izlaz.
-	--	"address" je samo prosledjena vrednost "address" bez transformacija.
 	type jzp_out_data_t is record
 		out_value : gp_register;
-		address   : reg_address;
 	end record jzp_out_data_t;
 
 	--	JZP types and constants end
@@ -383,6 +381,7 @@ package vlsi_pkg is
 	
 	type middle_in_data_t is record
 		from_id : id_data_out_t;
+		from_wsu : write_data_array_t;
 	end record middle_in_data_t;
 	
 	type middle_in_control_t is record
@@ -396,8 +395,11 @@ package vlsi_pkg is
 		stall : std_logic;
 	end record middle_out_control_t;
 	
+	type jzp_out_data_array_t is array(0 to GPR_READ_LINES_NUM - 1) of jzp_out_data_t;
+	
 	type middle_out_data_t is record
 		func_control : func_units_control_t;
+		operand_values : jzp_out_data_array_t;
 	end record middle_out_data_t;
 	
 	--	Middle - control types and constants end

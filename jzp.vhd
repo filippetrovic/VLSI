@@ -34,11 +34,6 @@ begin
 			
 		end loop;
 		
---		samo proslediti adresu na izlaz. Ako se zakljuci da nema neke
---		koristi od ovoga - onda se moze izbaciti, tj ideja je bila da 
---		se na ALU ne dovodi adresa sa ID, vec odavde, a na ovo ce se dovesti sa ID.
-		out_data.address <= in_data.address;
-		
 	end process comp;
 	
 	
