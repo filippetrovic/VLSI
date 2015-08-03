@@ -36,7 +36,7 @@ package vlsi_pkg is
 	type if_data_in_t is record
 		init_pc      : address_t;
 		jump_address : address_t;
-		mem_values : word_array_t;
+		mem_values   : word_array_t;
 	end record if_data_in_t;
 
 	type if_control_out_t is record
@@ -101,7 +101,7 @@ package vlsi_pkg is
 
 	--	RegFile types and constants end
 
-	
+
 	-- ID STAGE types
 
 	type id_data_in_t is record
@@ -311,29 +311,29 @@ package vlsi_pkg is
 	--	PSW types and constants end	
 
 	--	Hazard detector types and constants
-	
+
 	--	ulazni podaci su dekodovane instrukcije.
 	type haz_detector_in_data_t is record
 		instructions : decoded_instruction_array_t;
 	end record haz_detector_in_data_t;
-	
+
 	--	inst_ready su ready signali iz SM
 	--	mem_active je signal iz MEM bloka koji oznacava da je MEM blok zauzet.
 	--	mem_reg je registar u koji se dovlaci vrednost iz memorije.	
 	type haz_detector_in_control_t is record
-		inst_ready	: instruction_ready_array_t;
-		mem_busy	: std_logic;
-		mem_load	: std_logic;
-		mem_reg		: reg_address;
+		inst_ready : instruction_ready_array_t;
+		mem_busy   : std_logic;
+		mem_load   : std_logic;
+		mem_reg    : reg_address;
 	end record haz_detector_in_control_t;
-	
+
 	--	izlazni signal je tip hazarda koji se vodi na ulaz SM.	
 	type haz_detector_out_control_t is record
 		haz_type : hazard_type;
 	end record haz_detector_out_control_t;
-	
+
 	--	Hazard detector types and constants end
-	
+
 	--	Branch unit types and constants
 
 	type branch_unit_data_in_t is record
@@ -372,7 +372,7 @@ package vlsi_pkg is
 
 	type alu_out_data_t is record
 		result : wsh_in_data_t;
-		psw : psw_synch_in_data_t;
+		psw    : psw_synch_in_data_t;
 	end record alu_out_data_t;
 
 	--	ALU unit types end	
@@ -404,11 +404,50 @@ package vlsi_pkg is
 	
 	--	Middle - control types and constants end
 	
+	--	Mem unit types
+
+	type mem_unit_data_in_t is record
+		instruction : decoded_instruction_t;
+		-- vrednost iz registra koja se prosledjuje kroz JZP
+		-- ne treba nam ceo izlaz iz JZP zato sto imamo dekodovanu instrukciju
+		reg_value   : gp_register;
+		-- adresa iz registra R1 koja je prosledjena kroz JZP
+		address     : gp_register;
+		-- podatak koji je procitan iz memorije
+		data        : word_t;
+	end record mem_unit_data_in_t;
+
+	type mem_unit_control_in_t is record
+		go : std_logic;
+	end record mem_unit_control_in_t;
+
+	type mem_unit_control_out_t is record
+		-- signali ka hazard detektoru
+		mem_load : std_logic;
+		mem_busy : std_logic;
+		-- signali ka memoriji podataka
+		rd       : std_logic;
+		wr       : std_logic;
+	end record mem_unit_control_out_t;
+
+	type mem_unit_data_out_t is record
+		-- adresa registra sa kojim radimo
+		mem_reg  : reg_address;
+		-- adresa za adresiranje memorije
+		address  : address_t;
+		-- podatak za upis
+		data     : word_t;
+		-- podaci koji se vode na ulaz WSU
+		wsu_data : wsh_in_data_t;
+	end record mem_unit_data_out_t;
+
+	--	Mem unit types end
+	
 	--	General Purpose functions
 	function unsigned_add(data : std_logic_vector; increment : natural) return std_logic_vector;
 	function bool2std_logic(bool : boolean) return std_logic;
 	function std2bool(s : std_logic) return boolean;
-		
+
 end package vlsi_pkg;
 
 package body vlsi_pkg is
@@ -436,10 +475,10 @@ package body vlsi_pkg is
 		constant b : boolean := false;
 	begin
 		case s is
-			when '0' => return false;
-			when '1' => return true;
-			when others    => return b;
+			when '0'    => return false;
+			when '1'    => return true;
+			when others => return b;
 		end case;
 	end std2bool;
-	
+
 end package body vlsi_pkg;
