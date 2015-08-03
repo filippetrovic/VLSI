@@ -58,7 +58,7 @@ package vlsi_pkg is
 	constant REGISTER_WIDTH : integer := 32;
 
 	--	broj linija za citanje
-	constant READ_LINES_NUM : integer := 4;
+	constant READ_LINES_NUM : integer := 6;
 
 	--	broj linija za upis
 	constant WRITE_LINES_NUM : integer := 4;
@@ -76,7 +76,7 @@ package vlsi_pkg is
 	type read_address_array_t is array (0 to READ_LINES_NUM - 1) of reg_address;
 
 	--	READ_LINES_NUM linija za procitanu vrednost
-	type grp_output_value_t is array (0 to READ_LINES_NUM - 1) of gp_register;
+	type grp_output_value_array_t is array (0 to READ_LINES_NUM - 1) of gp_register;
 
 	--	adresa, vrednost i write signal za jedan upis
 	type write_data_t is record
@@ -96,7 +96,7 @@ package vlsi_pkg is
 
 	--	svi izlazni podaci (linije) iz registarskog fajla
 	type gpr_out_data_t is record
-		value : grp_output_value_t;
+		value : grp_output_value_array_t;
 	end record gpr_out_data_t;
 
 	--	RegFile types and constants end
