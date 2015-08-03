@@ -18,8 +18,6 @@ package vlsi_pkg is
 
 	type word_array_t is array (0 to ISSUE_WIDTH - 1) of word_t;
 
-	--	if stage types:
-
 	type undecoded_instruction_t is record
 		pc          : address_t;
 		instruction : word_t;
@@ -28,28 +26,31 @@ package vlsi_pkg is
 
 	type undecoded_instruction_array_t is array (0 to ISSUE_WIDTH - 1) of undecoded_instruction_t;
 
-	type if_data_in_t is record
-		jump_address : address_t;
-		mem_values   : word_array_t;
-		init_pc      : address_t;
-	end record if_data_in_t;
-
-	type if_data_out_t is record
-		mem_address  : address_array_t;
-		instructions : undecoded_instruction_array_t;
-	end record if_data_out_t;
+	-- IF STAGE types
 
 	type if_control_in_t is record
-		jump  : std_logic;
 		stall : std_logic;
+		jump  : std_logic;
 	end record if_control_in_t;
+
+	type if_data_in_t is record
+		init_pc      : address_t;
+		jump_address : address_t;
+		mem_values : word_array_t;
+	end record if_data_in_t;
 
 	type if_control_out_t is record
 		read : std_logic;
 	end record if_control_out_t;
 
-	--	if stage types end
+	type if_data_out_t is record
+		addresses    : address_array_t;
+		instructions : undecoded_instruction_array_t;
+	end record if_data_out_t;
 
+	-- IF STAGE types end
+
+<<<<<<< HEAD
 
 	--	RegFile types and constants
 	--	sirina za adresu	
@@ -103,6 +104,9 @@ package vlsi_pkg is
 	--	RegFile types and constants end
 
 	--	ID stage types
+=======
+	-- ID STAGE types
+>>>>>>> d61998a07c568b677da3d712426ae136cde732c7
 
 	type id_data_in_t is record
 		instructions : undecoded_instruction_array_t;
@@ -172,7 +176,6 @@ package vlsi_pkg is
 	end record id_data_out_t;
 
 	--	ID stage types end
-
 
 	--	WriteSinhUnit types and constants
 
@@ -306,7 +309,7 @@ package vlsi_pkg is
 	--	ulazne linije u psw synch.
 	type psw_synch_in_data_array_t is array (0 to ALU_FUNC_NUM - 1) of psw_synch_in_data_t;
 
-	--	PSW types and constants end
+	--	PSW types and constants end	
 
 	--	Hazard detector types and constants
 	
@@ -331,6 +334,49 @@ package vlsi_pkg is
 	end record haz_detector_out_control_t;
 	
 	--	Hazard detector types and constants end
+	
+	--	Branch unit types and constants
+
+	type branch_unit_data_in_t is record
+		psw         : psw_register_t;
+		instruction : decoded_instruction_t;
+	end record branch_unit_data_in_t;
+
+	type branch_unit_data_out_t is record
+		jump_address : address_t;
+		link_address : address_t;
+	end record branch_unit_data_out_t;
+
+	type branch_unit_control_in_t is record
+		active : std_logic;
+	end record branch_unit_control_in_t;
+
+	type branch_unit_control_out_t is record
+		jump : std_logic;
+		wr   : std_logic;
+	end record branch_unit_control_out_t;
+
+	--	Branch unit types and constants end
+
+	--	ALU unit types
+
+	type alu_in_data_t is record
+		instruction : decoded_instruction_t;
+		operand_A   : jzp_out_data_t;
+		operand_B   : jzp_out_data_t;
+		psw         : psw_register_t;
+	end record alu_in_data_t;
+
+	type alu_in_control_t is record
+		go : std_logic;
+	end record alu_in_control_t;
+
+	type alu_out_data_t is record
+		result : wsh_in_data_t;
+		psw : psw_synch_in_data_t;
+	end record alu_out_data_t;
+
+	--	ALU unit types end	
 
 	--	General Purpose functions
 	function unsigned_add(data : std_logic_vector; increment : natural) return std_logic_vector;
@@ -364,8 +410,8 @@ package body vlsi_pkg is
 		constant b : boolean := false;
 	begin
 		case s is
-			when '0' | 'L' => return false;
-			when '1' | 'H' => return true;
+			when '0' => return false;
+			when '1' => return true;
 			when others    => return b;
 		end case;
 	end std2bool;

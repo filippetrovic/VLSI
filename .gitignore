@@ -1,0 +1,13 @@
+/*
+!/simulation
+/simulation/*
+/simulation/modelsim/*
+!/simulation/modelsim
+!/simulation/modelsim/*.vht
+!/simulation/modelsim/*.vhd
+!/simulation/modelsim/config
+!/simulation/modelsim/config/*.do
+!*.vhd
+!*.vht
+!*.vhdl
+!.gitignore
