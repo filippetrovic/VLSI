@@ -227,7 +227,7 @@ package vlsi_pkg is
 		br_control  : func_unit_input_control_t;
 		mem_control : func_unit_input_control_t;
 	end record func_units_control_t;
-	
+
 	--	Izlazni podaci iz switcha. registri se vode na JZP, a func_control na backend.	
 	type switch_out_data_t is record
 		func_control : func_units_control_t;
@@ -378,42 +378,42 @@ package vlsi_pkg is
 	--	ALU unit types end	
 
 	--	Middle - control types and constants	
-	
+
 	--	ulazni tip za Middle. 
 	--	from_id su linije sa Frontenda, from_wsu su linije iz backenda, tacnije WSU.	
 	type middle_in_data_t is record
-		from_id : id_data_out_t;
+		from_id  : id_data_out_t;
 		from_wsu : write_data_array_t;
 	end record middle_in_data_t;
-	
+
 	-- ulazne kontrolne linije za middle.
 	--	TODO: Treba prebaciti na tip koriscen u mem_unit.		
 	type middle_in_control_t is record
 		mem_busy : std_logic;
 		mem_load : std_logic;
 		mem_done : std_logic;
-		mem_reg : reg_address;
+		mem_reg  : reg_address;
 	end record middle_in_control_t;
-	
+
 	--	Izlazni kontrolni signali.
 	--	stall se vodi na frontend.	
 	type middle_out_control_t is record
 		stall : std_logic;
-		stop : std_logic;
+		stop  : std_logic;
 	end record middle_out_control_t;
-	
-	type jzp_out_data_array_t is array(0 to GPR_READ_LINES_NUM - 1) of jzp_out_data_t;
-	
+
+	type jzp_out_data_array_t is array (0 to GPR_READ_LINES_NUM - 1) of jzp_out_data_t;
+
 	-- Izlazne linije podataka.
 	--	func_control su linije koje idu sa Swtich-a, tamo su opisane.
 	--	operand_values su linije koje idu sa JPZ-ova. Niz operanada za func jedinice.	
 	type middle_out_data_t is record
-		func_control : func_units_control_t;
+		func_control   : func_units_control_t;
 		operand_values : jzp_out_data_array_t;
 	end record middle_out_data_t;
-	
+
 	--	Middle - control types and constants end
-	
+
 	--	Mem unit types
 
 	type mem_unit_data_in_t is record
@@ -455,36 +455,46 @@ package vlsi_pkg is
 	end record mem_unit_data_out_t;
 
 	--	Mem unit types end
-	
+
 	--	Stopko types
-	
+
 	type stopko_instruction_t is record
 		op    : mnemonic_t;
 		valid : std_logic;
 	end record stopko_instruction_t;
-	
-	type stopko_instruction_array_t is array(0 to ISSUE_WIDTH - 1) of stopko_instruction_t;
-	
-	
+
+	type stopko_instruction_array_t is array (0 to ISSUE_WIDTH - 1) of stopko_instruction_t;
+
 	type stopko_in_data_t is record
 		instructions : stopko_instruction_array_t;
 	end record stopko_in_data_t;
-	
+
 	type stopko_in_control_t is record
 		mem_busy : std_logic;
 	end record stopko_in_control_t;
-	
+
 	type stopko_out_control_t is record
-		stop : std_logic;
+		stop  : std_logic;
 		stall : std_logic;
 	end record stopko_out_control_t;
-	
+
 	--	Stopko types end
-	
+
 	--	General Purpose functions
 	function unsigned_add(data : std_logic_vector; increment : natural) return std_logic_vector;
 	function bool2std_logic(bool : boolean) return std_logic;
 	function std2bool(s : std_logic) return boolean;
+
+	-- Text file helper functions
+
+	-- converts std_logic into a character
+	function chr(sl : std_logic) return character;
+
+	-- converts std_logic_vector into a string (binary base)
+	function str(slv : std_logic_vector) return string;
+
+	-- convert std_logic_vector into a string in hex format
+	function hstr(slv : std_logic_vector) return string;
 
 end package vlsi_pkg;
 
@@ -518,5 +528,73 @@ package body vlsi_pkg is
 			when others => return b;
 		end case;
 	end std2bool;
+
+	function chr(sl : std_logic) return character is
+		variable c : character;
+	begin
+		case sl is
+			when 'U' => c := 'U';
+			when 'X' => c := 'X';
+			when '0' => c := '0';
+			when '1' => c := '1';
+			when 'Z' => c := 'Z';
+			when 'W' => c := 'W';
+			when 'L' => c := 'L';
+			when 'H' => c := 'H';
+			when '-' => c := '-';
+		end case;
+		return c;
+	end chr;
+
+	function str(slv : std_logic_vector) return string is
+		variable result : string(1 to slv'length);
+		variable r      : integer;
+	begin
+		r := 1;
+		for i in slv'range loop
+			result(r) := chr(slv(i));
+			r         := r + 1;
+		end loop;
+		return result;
+	end str;
+
+	function hstr(slv : std_logic_vector) return string is
+		variable hexlen  : integer;
+		variable longslv : std_logic_vector(67 downto 0) := (others => '0');
+		variable hex     : string(1 to 16);
+		variable fourbit : std_logic_vector(3 downto 0);
+	begin
+		hexlen := (slv'left + 1) / 4;
+		if (slv'left + 1) mod 4 /= 0 then
+			hexlen := hexlen + 1;
+		end if;
+		longslv(slv'left downto 0) := slv;
+		for i in (hexlen - 1) downto 0 loop
+			fourbit := longslv(((i * 4) + 3) downto (i * 4));
+			case fourbit is
+				when "0000" => hex(hexlen - I) := '0';
+				when "0001" => hex(hexlen - I) := '1';
+				when "0010" => hex(hexlen - I) := '2';
+				when "0011" => hex(hexlen - I) := '3';
+				when "0100" => hex(hexlen - I) := '4';
+				when "0101" => hex(hexlen - I) := '5';
+				when "0110" => hex(hexlen - I) := '6';
+				when "0111" => hex(hexlen - I) := '7';
+				when "1000" => hex(hexlen - I) := '8';
+				when "1001" => hex(hexlen - I) := '9';
+				when "1010" => hex(hexlen - I) := 'A';
+				when "1011" => hex(hexlen - I) := 'B';
+				when "1100" => hex(hexlen - I) := 'C';
+				when "1101" => hex(hexlen - I) := 'D';
+				when "1110" => hex(hexlen - I) := 'E';
+				when "1111" => hex(hexlen - I) := 'F';
+				when "ZZZZ" => hex(hexlen - I) := 'z';
+				when "UUUU" => hex(hexlen - I) := 'u';
+				when "XXXX" => hex(hexlen - I) := 'x';
+				when others => hex(hexlen - I) := '?';
+			end case;
+		end loop;
+		return hex(1 to hexlen);
+	end hstr;
 
 end package body vlsi_pkg;
