@@ -2,6 +2,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.vlsi_pkg.all;
+use ieee.std_logic_textio.all;
+use std.textio.all;
 
 entity mem_unit_test is
 end entity mem_unit_test;
@@ -22,9 +24,14 @@ architecture test_arch of mem_unit_test is
 	signal out_control : mem_unit_control_out_t;
 	signal out_data    : mem_unit_data_out_t;
 
-	signal read, write : std_logic;
-	signal mem_data    : word_t;
-	signal mem_address : address_t;
+	signal read, write  : std_logic;
+	signal mem_data_out : word_t;
+	signal mem_data_in  : word_t;
+	signal mem_address  : address_t;
+
+	type memory_t is array (0 to 2 ** 8) of word_t;
+
+	signal memory : memory_t := (others => (others => '0'));
 
 begin
 
@@ -54,26 +61,57 @@ begin
 	-- adresiranje memorije
 	mem_address  <= out_data.address;
 	-- linije podataka od memorije ka jedinici
-	in_data.data <= mem_data;
+	in_data.data <= mem_data_out;
+	mem_data_in  <= out_data.data;
 
 	memory_simulation : process is
-		variable data : word_t;
+		variable address : address_t;
+		variable data    : word_t;
+		variable ln      : line;
+
+		file output_file : text is out "output.txt";
 	begin
 		loop
+		
 			wait until rising_edge(clk);
+			
 			if read = '1' then
+
 				-- posto nemamo simuliranu memoriju ovde onda vracamo adresu
 				-- sa koje treba da procitamo podatak
-				data := mem_address;
+				address := mem_address;
 				wait until rising_edge(clk); -- vreme
 				wait until rising_edge(clk); -- odziva
 				wait until rising_edge(clk); -- memorije
-				mem_data <= data;
+				
+				mem_data_out <= memory(to_integer(unsigned(address)));
+
 			elsif write = '1' then
+				data    := mem_data_in;
+				address := mem_address;
+
+				report str(address) & " : " & str(data);
+
 				wait until rising_edge(clk); -- vreme
 				wait until rising_edge(clk); -- odziva
-				wait until rising_edge(clk); -- memorije				
+				wait until rising_edge(clk); -- memorije
+
+				memory(to_integer(unsigned(address))) <= data;
+
+				-- upis u fajl
+				for i in memory'range loop
+					std.textio.write(ln, hstr(std_logic_vector(to_unsigned(i, 32))));
+					std.textio.write(ln, string'(" "));
+					if i /= to_integer(unsigned(address)) then
+						std.textio.write(ln, str(memory(i)));
+					else
+						std.textio.write(ln, str(data));
+					end if;
+					writeline(output_file, ln);
+				end loop;
+
 			end if;
+			
 		end loop;
 
 	end process memory_simulation;
@@ -86,44 +124,44 @@ begin
 
 		in_control.go <= '1';
 
-		in_data.address           <= X"0C00_00A0";
+		in_data.address           <= X"0000_000A";
 		in_data.instruction.pc    <= X"0000_0010";
 		in_data.instruction.op    <= LOAD_M;
 		in_data.instruction.r3    <= B"00111";
 		in_data.instruction.valid <= '1';
 		in_data.reg_value         <= X"1234_5678"; -- ali nije bitno kod load
-		
+
 		wait until rising_edge(clk);
 		wait until rising_edge(clk);
 		wait until rising_edge(clk);
 		wait until rising_edge(clk);
 		wait until rising_edge(clk);
-		
+
 		in_control.go <= '1';
 
-		in_data.address           <= X"0C00_00A0";
+		in_data.address           <= X"0000_000A";
 		in_data.instruction.pc    <= X"0000_0010";
 		in_data.instruction.op    <= STORE_M;
 		in_data.instruction.r3    <= B"00111";
 		in_data.instruction.valid <= '1';
-		in_data.reg_value         <= X"1234_5678";
-		
-		wait until rising_edge(clk);
-		wait until rising_edge(clk);
-		wait until rising_edge(clk);
-		wait until rising_edge(clk);
-		wait until rising_edge(clk);		
+		in_data.reg_value         <= X"1002_f00f";
 
-		in_control.go <= '0';	
-		
-		in_data.address           <= X"0E00_00A0";
+		wait until rising_edge(clk);
+		wait until rising_edge(clk);
+		wait until rising_edge(clk);
+		wait until rising_edge(clk);
+		wait until rising_edge(clk);
+
+		in_control.go <= '0';
+
+		in_data.address           <= X"0000_000A";
 		in_data.instruction.pc    <= X"0000_0012";
 		in_data.instruction.op    <= STORE_M;
 		in_data.instruction.r3    <= B"01000";
 		in_data.instruction.valid <= '1';
 		in_data.reg_value         <= X"AABB_7788";
-		
-		wait until rising_edge(clk);		
+
+		wait until rising_edge(clk);
 
 		wait;
 
