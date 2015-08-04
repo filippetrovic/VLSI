@@ -30,6 +30,7 @@ architecture arch of branch_unit is
 	begin
 		data_out_reset.jump_address := (others => '0');
 		data_out_reset.link_address := (others => '0');
+		data_out_reset.pc := (others => '0');
 		return data_out_reset;
 	end function reset_data_out;
 
@@ -107,7 +108,7 @@ begin
 			control_out.wr        <= wr;
 			data_out.jump_address <= jump_address;
 			data_out.link_address <= link_address;
-
+			data_out.pc	<= in_buffer.instruction.pc;
 		else
 			
 			control_out.jump <= '0';

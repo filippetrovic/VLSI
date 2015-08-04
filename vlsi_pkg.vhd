@@ -344,6 +344,7 @@ package vlsi_pkg is
 	type branch_unit_data_out_t is record
 		jump_address : address_t;
 		link_address : address_t;
+		pc : address_t;
 	end record branch_unit_data_out_t;
 
 	type branch_unit_control_in_t is record
@@ -484,21 +485,67 @@ package vlsi_pkg is
 	--	CPU types
 	
 	type cpu_in_data_t is record
+		--	inicijalni pc od koga krece izvrsavanje
 		init_pc      : address_t;
+		--	sirove instrukcije koje stizu iz instrukcijskog kesa
 		mem_values   : word_array_t;
+		--	podatak koji stize iz kesa podataka
+		mem_data : word_t;
 	end record cpu_in_data_t;
 	
 	type cpu_out_control_t is record
+		--	signal kojim se inst. kesu trazi citanje
 		read_inst : std_logic;
+		--	signal koji oznacava da je procesor izvrsio stop instrukciju
 		stop : std_logic;
+		--	signal kojim se trazi citanje od kesa podataka
+		read_data : std_logic;
+		--	signal kojim se kesu podataka sopstava da treba da upise podatak
+		write_data : std_logic;
 	end record cpu_out_control_t;
 	
 	type cpu_out_data_t is record
+		--	adresa sa koje se cita instrukcija iz instrukcijskog kesa
 		inst_address : address_array_t;
+		--	podatak za upis u kes podataka
+		mem_data : word_t;
+		--	adresa sa koje se cita/upisuje podatak u kesu podataka
+		mem_address : address_t;
 	end record cpu_out_data_t;
 	
-	
 	-- CPU types end
+	
+	--	backend types
+	
+	type backend_in_data_t is record
+		func_control : func_units_control_t;
+		operand_values : jzp_out_data_array_t;
+		--	podatak koji stize iz memorije podataka
+		mem_data : word_t;
+	end record backend_in_data_t;
+	
+	type backend_out_control_t is record
+		mem_busy : std_logic;
+		mem_load : std_logic;
+		mem_done : std_logic;
+		mem_reg : reg_address;
+		jump : std_logic;
+		--	citanje iz memorije podataka
+		read : std_logic;
+		-- upis u memoriju podataka
+		write : std_logic;
+	end record backend_out_control_t;
+	
+	type backend_out_data_t is record
+		jump_address : address_t;
+		from_wsu : write_data_array_t;
+		--	podatak koji se upisuje u memoriju podataka
+		mem_data : word_t;
+		--	adresa na koju ce biti upisan podataka u memoriju podataka
+		mem_address : address_t;
+	end record backend_out_data_t;
+	
+	--	backend types end
 	
 	--	General Purpose functions
 	function unsigned_add(data : std_logic_vector; increment : natural) return std_logic_vector;
