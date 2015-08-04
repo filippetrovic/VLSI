@@ -5,13 +5,13 @@ use work.vlsi_pkg.all;
 use ieee.std_logic_textio.all;
 use std.textio.all;
 
-entity test_with_mem_template is
-end entity test_with_mem_template;
+entity cpu_test is
+end entity cpu_test;
 
-architecture test_arch of test_with_mem_template is
+architecture test_arch of cpu_test is
 
 	-- cache constants, signals and types
-	constant MEM_SIZE : natural := 2 ** 13;
+	constant MEM_SIZE : natural := 2 ** 12;
 
 	type cache_mem_t is array (0 to MEM_SIZE - 1) of word_t;
 
