@@ -1,5 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 use work.vlsi_pkg.all;
 
 -- id faza predstavlja drugi stepen protocne obrade.
@@ -46,6 +47,20 @@ architecture RTL of id_stage is
 		return to_ret;
 	end function reset_stage_buffer;
 
+	function isOpCodeValid(op : mnemonic_t) return boolean is
+	begin
+		case to_integer(unsigned(op)) is
+			when to_integer(unsigned(AND_M)) to to_integer(unsigned(SIMOV_M)) =>
+				return true;
+			when to_integer(unsigned(LOAD_M)) | to_integer(unsigned(STORE_M)) =>
+				return true;
+			when to_integer(unsigned(BEQ_M)) to to_integer(unsigned(BLAL_M))  =>
+				return true;
+			when others                                                       =>
+				return false;
+		end case;
+	end function isOpCodeValid;
+
 	function decode(undecoded : undecoded_instruction_array_t) return stage_buff_register_t is
 		variable ret : stage_buff_register_t;
 	begin
@@ -57,12 +72,16 @@ architecture RTL of id_stage is
 			ret.instructions(i).r2     := undecoded(i).instruction(16 downto 12);
 			ret.instructions(i).r3     := undecoded(i).instruction(21 downto 17);
 			ret.instructions(i).valid  := undecoded(i).valid;
-			ret.instructions(i).op     := undecoded(i).instruction(31 downto 27);
+			if (isOpCodeValid(undecoded(i).instruction(31 downto 27))) then
+				ret.instructions(i).op := undecoded(i).instruction(31 downto 27);
+			else
+				ret.instructions(i).op := ERROR_M;
+			end if;
 		end loop;
 
 		return ret;
 	end function decode;
-
+	
 begin
 	clock : process(clk, rst) is
 	begin
