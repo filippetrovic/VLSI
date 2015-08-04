@@ -481,6 +481,25 @@ package vlsi_pkg is
 	
 	--	Stopko types end
 	
+	--	CPU types
+	
+	type cpu_in_data_t is record
+		init_pc      : address_t;
+		mem_values   : word_array_t;
+	end record cpu_in_data_t;
+	
+	type cpu_out_control_t is record
+		read_inst : std_logic;
+		stop : std_logic;
+	end record cpu_out_control_t;
+	
+	type cpu_out_data_t is record
+		inst_address : address_array_t;
+	end record cpu_out_data_t;
+	
+	
+	-- CPU types end
+	
 	--	General Purpose functions
 	function unsigned_add(data : std_logic_vector; increment : natural) return std_logic_vector;
 	function bool2std_logic(bool : boolean) return std_logic;
