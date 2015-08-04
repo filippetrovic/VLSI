@@ -11,7 +11,7 @@ end entity cpu_test;
 architecture test_arch of cpu_test is
 
 	-- cache constants, signals and types
-	constant MEM_SIZE : natural := 2 ** 12;
+	constant MEM_SIZE : natural := 2 ** 13;
 
 	type cache_mem_t is array (0 to MEM_SIZE - 1) of word_t;
 
@@ -115,7 +115,7 @@ begin
 	begin
 
 		-- resetujemo procesor
-		rst <= '0';
+		rst <= '1';
 
 		readline(inst_cache_file, ln);
 		hread(ln, ic_address);
