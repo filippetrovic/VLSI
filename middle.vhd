@@ -38,6 +38,10 @@ architecture RTL of middle is
 	type jzp_array_in_data_t is array(0 to GPR_READ_LINES_NUM - 1) of jzp_in_data_t;
 	signal jzp_in_data : jzp_array_in_data_t;
 
+--	stopko stignals
+	signal stopko_in_data : stopko_in_data_t;
+	signal stopko_in_control : stopko_in_control_t;
+	signal stopko_out_control : stopko_out_control_t;
 	
 begin
 	haz_d : entity work.hazard_detector
@@ -63,7 +67,8 @@ begin
 
 	stall_in_control.haz_type <= haz_out_control.haz_type;
 	stall_in_control.mem_done <= in_control.mem_done;
-	out_control.stall         <= stall_out_control.stall;
+--	stall je logicko ILI signala stall iz stall_generatora i stopka
+--	out_control.stall         <= stall_out_control.stall;
 
 	sw : entity work.switch
 		port map(
@@ -114,5 +119,24 @@ begin
 		jzp_in_data(i).from_wsu <= in_data.from_wsu;
 		jzp_in_data(i).address <= gpr_in_data.read_address(i);
 	end generate jzp_for;
+	
+	
+	stopko : entity work.stopko_unit
+		port map(
+			clk         => clk,
+			rst         => rst,
+			in_data     => stopko_in_data,
+			in_control  => stopko_in_control,
+			out_control => stopko_out_control
+		);
+		
+	stopko_in_data.instructions(0).op <= in_data.from_id.instructions(0).op;
+	stopko_in_data.instructions(0).valid <= in_data.from_id.instructions(0).valid;
+	stopko_in_data.instructions(1).op <= in_data.from_id.instructions(1).op;
+	stopko_in_data.instructions(1).valid <= in_data.from_id.instructions(1).valid;
+			
+	stopko_in_control.mem_busy <= in_control.mem_busy;
+	out_control.stop <= stopko_out_control.stop;
+	out_control.stall <= stopko_out_control.stall or stall_out_control.stall;
 	
 end architecture RTL;

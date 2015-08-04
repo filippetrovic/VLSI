@@ -399,6 +399,7 @@ package vlsi_pkg is
 	--	stall se vodi na frontend.	
 	type middle_out_control_t is record
 		stall : std_logic;
+		stop : std_logic;
 	end record middle_out_control_t;
 	
 	type jzp_out_data_array_t is array(0 to GPR_READ_LINES_NUM - 1) of jzp_out_data_t;
@@ -454,6 +455,31 @@ package vlsi_pkg is
 	end record mem_unit_data_out_t;
 
 	--	Mem unit types end
+	
+	--	Stopko types
+	
+	type stopko_instruction_t is record
+		op    : mnemonic_t;
+		valid : std_logic;
+	end record stopko_instruction_t;
+	
+	type stopko_instruction_array_t is array(0 to ISSUE_WIDTH - 1) of stopko_instruction_t;
+	
+	
+	type stopko_in_data_t is record
+		instructions : stopko_instruction_array_t;
+	end record stopko_in_data_t;
+	
+	type stopko_in_control_t is record
+		mem_busy : std_logic;
+	end record stopko_in_control_t;
+	
+	type stopko_out_control_t is record
+		stop : std_logic;
+		stall : std_logic;
+	end record stopko_out_control_t;
+	
+	--	Stopko types end
 	
 	--	General Purpose functions
 	function unsigned_add(data : std_logic_vector; increment : natural) return std_logic_vector;
