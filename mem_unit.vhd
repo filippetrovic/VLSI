@@ -28,7 +28,7 @@ architecture arch of mem_unit is
 		return wsu_outputs;
 	end function reset_outputs_to_wsu;
 
-	type state is (idle, busy);
+	type state is (idle, busy, writeback);
 
 	signal state_reg, state_next : state;
 
@@ -50,7 +50,7 @@ begin
 			state_reg    <= idle;
 			mem_done_reg <= '0';
 		elsif rising_edge(clk) then
-			if state_reg = idle then
+			if state_reg = idle or state_reg = writeback then
 				if std2bool(in_control.go) and in_data.instruction.valid = '1' then
 					in_buffer <= in_data;
 					state_reg <= busy;
@@ -112,23 +112,10 @@ begin
 					elsif count_reg = MEM_ACCESS_TIME then
 						-- ovaj signal ce da traje jedan takt nakon ukidanja mem_busy signala
 						mem_done_next <= '1';
-					elsif count_reg = (MEM_ACCESS_TIME + 1) then
-						-- aktiviramo odgovarajuce kontrolne signale i
-						-- prospustamo podatak sa izlaza memorije direktno na wsu
-						-- umesto da cuvamo u prihvatni bafer i onda da iz njega upisujemo u gpr
-						out_data.wsu_data.address <= in_buffer.instruction.r3;
-						out_data.wsu_data.pc      <= in_buffer.instruction.pc;
-						out_data.wsu_data.valid   <= '1';
-						out_data.wsu_data.value   <= in_data.data; -- podatak koji dobijamo iz memorije
-
-						-- pitanje je da li moze da se ustedi takt tako sto bi se iz busy islo ponovo
-						-- u busy stanje
-						state_next    <= idle;
-						
-						-- povlacenje mem_load i mem_busy u taktu kada imamo
-						-- raspoloziv podatak od strane memorije
-						out_control.mem_load <= '0';
-						out_control.mem_busy <= '0';
+						-- prelazimo u writeback u taktu u kojem dobijamo podatak od memorije
+						-- iz tog stanja mozemo da idemo ponovo u busy u narednom taktu ako
+						-- imamo aktivan go signal u taktu u kojem prosledjujemo podatak od memorije ka wsu
+						state_next <= writeback;
 					end if;
 				elsif in_buffer.instruction.op = STORE_M then
 					out_control.mem_load <= '0';
@@ -147,6 +134,24 @@ begin
 				end if;
 
 				count_next <= count_reg + 1;
+
+			when writeback =>
+
+				-- aktiviramo odgovarajuce kontrolne signale i
+				-- prospustamo podatak sa izlaza memorije direktno na wsu
+				-- umesto da cuvamo u prihvatni bafer i onda da iz njega upisujemo u gpr
+				out_data.wsu_data.address <= in_buffer.instruction.r3;
+				out_data.wsu_data.pc      <= in_buffer.instruction.pc;
+				out_data.wsu_data.valid   <= '1';
+				out_data.wsu_data.value   <= in_data.data; -- podatak koji dobijamo iz memorije				
+
+				-- povlacenje mem_load i mem_busy u taktu kada imamo
+				-- raspoloziv podatak od strane memorije
+				out_control.mem_load <= '0';
+				out_control.mem_busy <= '0';
+
+				-- verovatno nije potrebno navoditi
+				state_next <= idle;
 
 		end case;
 	end process;

@@ -127,7 +127,7 @@ begin
 		-- inicijalizujemo instrukcijasku kes memoriju iz fajla
 		inst_cache <= ld_mem(inst_cache_file);
 
-		wait for CLK_PERIOD;
+		wait until rising_edge(clk);
 
 		-- ukidamo reset signal
 		rst <= '0';
@@ -236,7 +236,12 @@ begin
 			matched := true;
 
 			for i in cache_mem_t'range loop
-				if data_cache(i) /= data_test(i) then
+			if data_cache(i) /= data_test(i) then
+				
+					-- debug
+					report str(data_cache(i));
+					report str(data_test(i));
+					
 					matched := false;
 					report "Sadrzaj memorije se ne poklapa sa ocekivanim!";
 					exit;
@@ -246,6 +251,8 @@ begin
 			if matched then
 				report "Sadrzaji se poklapaju!";
 			end if;
+			
+			wait;
 
 		end if;
 
