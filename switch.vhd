@@ -11,8 +11,6 @@ use work.vlsi_pkg.all;
 --	Ako je sve u aktivno onda se instrukcija na osnovu op_coda moze proslediti.
 entity switch is
 	port(
-		clk        : in  std_logic;
-		rst        : std_logic;
 		data_in    : in  switch_in_data_t;
 		control_in : in  switch_in_control_t;
 		data_out   : out switch_out_data_t
@@ -35,20 +33,9 @@ architecture RTL of switch is
 		return ret;
 	end function not_important;
 
-	signal stopped_reg, stopped_next : std_logic;
-
 begin
-	process(clk, rst) is
-	begin
-		if rst = '1' then
-			stopped_reg <= '0';
-		elsif rising_edge(clk) then
-			stopped_reg <= stopped_next;
-		end if;
 
-	end process;
-
-	comb : process(data_in, control_in, stopped_reg) is
+	comb : process(data_in, control_in) is
 		procedure activate_func_unit(inst : in mnemonic_t; instruction_num : in integer) is
 		begin
 			case to_integer(unsigned(inst)) is
@@ -80,7 +67,7 @@ begin
 		data_out.func_control.mem_control.go          <= '0';
 		data_out.func_control.mem_control.instruction <= not_important;
 
-		if stopped_reg = '0' and control_in.stop = '0' then
+		if control_in.stop = '0' then
 			if control_in.inst_go(0) = '1' and data_in.instructions(0).valid = '1' then
 				activate_func_unit(data_in.instructions(0).op, 0);
 			end if;
@@ -89,8 +76,6 @@ begin
 				activate_func_unit(data_in.instructions(1).op, 1);
 			end if;
 		end if;
-
-		stopped_next <= control_in.stop;
 
 	end process comb;
 

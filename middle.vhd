@@ -72,8 +72,6 @@ begin
 
 	sw : entity work.switch
 		port map(
-			clk        => clk,
-			rst        => rst,
 			data_in    => switch_in_data,
 			control_in => switch_in_control,
 			data_out   => switch_out_data
