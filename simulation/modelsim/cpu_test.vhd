@@ -76,9 +76,9 @@ begin
 	clock_driver : process
 		constant period : time := CLK_PERIOD;
 	begin
-		clk <= '0';
-		wait for period / 2;
 		clk <= '1';
+		wait for period / 2;
+		clk <= '0';
 		wait for period / 2;
 	end process clock_driver;
 
@@ -98,11 +98,11 @@ begin
 	ic_ext_address <= cpu_out_data.inst_address;
 	dc_ext_address <= cpu_out_data.mem_address;
 	dc_data_in     <= cpu_out_data.mem_data;
-	
-	ic_read <= cpu_out_control.read_inst;
-	dc_read <= cpu_out_control.read_data;
+
+	ic_read  <= cpu_out_control.read_inst;
+	dc_read  <= cpu_out_control.read_data;
 	dc_write <= cpu_out_control.write_data;
-	
+
 	cpu_stop <= cpu_out_control.stop;
 
 	-- proces kojim simuliramo instrukcijski kes
@@ -159,6 +159,8 @@ begin
 		variable dc_address : address_t;
 		variable dc_data    : word_t;
 
+		constant undefined_data : word_t := (others => 'U');
+		variable data_to_write  : word_t;
 	begin
 
 		-- inicijalizujemo data kes memoriju iz fajla
@@ -193,14 +195,17 @@ begin
 
 				-- dump svega u fajl output.txt
 				for i in cache_mem_t'range loop
-					std.textio.write(ln, hstr(std_logic_vector(to_unsigned(i, 32))));
-					std.textio.write(ln, string'(" "));
 					if i /= to_integer(unsigned(dc_address)) then
-						std.textio.write(ln, str(data_cache(i)));
+						data_to_write := data_cache(i);
 					else
-						std.textio.write(ln, str(dc_data));
+						data_to_write := dc_data;
 					end if;
-					writeline(output_file, ln);
+					if (data_to_write /= undefined_data) then
+						std.textio.write(ln, hstr(std_logic_vector(to_unsigned(i, 32))));
+						std.textio.write(ln, string'(" "));
+						std.textio.write(ln, str(data_to_write));
+						writeline(output_file, ln);
+					end if;
 				end loop;
 
 			end if;
@@ -222,6 +227,8 @@ begin
 		-- sadrzaj memorije sa ocekivanim sadrzajem i ispisati poruku
 		-- o ishodu poredjenja
 		if cpu_stop = '1' then
+			
+			wait until rising_edge(clk);
 
 			-- ocekivani sadrzaj
 			data_test := ld_mem(test_cache_file);

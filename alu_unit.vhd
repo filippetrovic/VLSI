@@ -74,7 +74,18 @@ begin
 						out_data.psw.psw_value(Z_POSITION) <= '1';
 					end if;
 
-					if unsigned(in_buffer.operand_B.out_value) > unsigned(in_buffer.operand_A.out_value) then
+					opA := in_buffer.operand_A.out_value;
+					opB := in_buffer.operand_B.out_value;
+
+					if opA(opA'left) = '0' and opB(opB'left) = '1' then
+						out_data.psw.psw_value(C_POSITION) <= '1';
+					end if;
+
+					if opA(opA'left) = '0' and result(result'left) = '1' then
+						out_data.psw.psw_value(C_POSITION) <= '1';
+					end if;
+
+					if opB(opB'left) = '1' and result(result'left) = '1' then
 						out_data.psw.psw_value(C_POSITION) <= '1';
 					end if;
 
@@ -159,7 +170,18 @@ begin
 						out_data.psw.psw_value(Z_POSITION) <= '1';
 					end if;
 
-					if unsigned(in_buffer.operand_B.out_value) > unsigned(in_buffer.operand_A.out_value) then
+					opA := in_buffer.operand_A.out_value;
+					opB := in_buffer.operand_B.out_value;
+
+					if opA(opA'left) = '0' and opB(opB'left) = '1' then
+						out_data.psw.psw_value(C_POSITION) <= '1';
+					end if;
+
+					if opA(opA'left) = '0' and result(result'left) = '1' then
+						out_data.psw.psw_value(C_POSITION) <= '1';
+					end if;
+
+					if opB(opB'left) = '1' and result(result'left) = '1' then
 						out_data.psw.psw_value(C_POSITION) <= '1';
 					end if;
 
@@ -309,7 +331,6 @@ begin
 			end case;
 
 		else
-			
 			out_data                <= reset_outputs;
 			out_data.result.valid   <= '0';
 			out_data.psw.update_psw <= '0';

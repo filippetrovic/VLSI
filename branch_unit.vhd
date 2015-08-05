@@ -52,10 +52,10 @@ begin
 		end if;
 	end process;
 
-	N <= in_buffer.psw(N_POSITION);
-	Z <= in_buffer.psw(Z_POSITION);
-	C <= in_buffer.psw(C_POSITION);
-	V <= in_buffer.psw(V_POSITION);
+	N <= data_in.psw(N_POSITION);
+	Z <= data_in.psw(Z_POSITION);
+	C <= data_in.psw(C_POSITION);
+	V <= data_in.psw(V_POSITION);
 
 	ctrl : process(C, N, V, Z, jump, jump_address, link_address, wr, in_ctrl_buffer.go, in_buffer, rst) is
 	begin
@@ -86,7 +86,7 @@ begin
 						link_address <= (others => '-');
 					end if;
 				when BHI_M =>
-					if std2bool(C) and not (std2bool(Z)) then
+					if not std2bool(C) and not std2bool(Z) then
 						jump         <= '1';
 						jump_address <= calc_jump_address(in_buffer.instruction.pc, in_buffer.instruction.offset);
 						link_address <= (others => '-');
