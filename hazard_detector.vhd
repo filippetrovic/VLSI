@@ -183,7 +183,8 @@ begin
 		elsif inst_valid(0) and inst_valid(1) and inst_kind(0) = ALU_INST and 
 			in_data.instructions(0).op /= CMP_M and
 			((in_data.instructions(0).r3 = in_data.instructions(1).r1 and inst_use_r1(1) = true) or 
-			(in_data.instructions(0).r3 = in_data.instructions(1).r2 and inst_imm(1) = false)) then									
+			(in_data.instructions(0).r3 = in_data.instructions(1).r2 and inst_imm(1) = false) or
+			(in_data.instructions(0).r3 = in_data.instructions(1).r3 and in_data.instructions(1).op = STORE_M)) then									
 				
 			--	hazard tip A 1
 			out_control.haz_type <= A_type;
