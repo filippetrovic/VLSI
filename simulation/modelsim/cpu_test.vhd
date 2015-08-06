@@ -153,7 +153,7 @@ begin
 	init_data_cache : process is
 		file data_cache_file : text open read_mode is "data_cache.txt";
 
-		file output_file : text is out "output.txt";
+		file output_file : text;
 
 		variable ln         : line;
 		variable dc_address : address_t;
@@ -193,6 +193,8 @@ begin
 
 				data_cache(to_integer(unsigned(dc_address))) <= dc_data;
 
+				file_open(output_file, "output.txt", WRITE_MODE);
+
 				-- dump svega u fajl output.txt
 				for i in cache_mem_t'range loop
 					if i /= to_integer(unsigned(dc_address)) then
@@ -207,6 +209,8 @@ begin
 						writeline(output_file, ln);
 					end if;
 				end loop;
+
+				file_close(output_file);
 
 			end if;
 
@@ -239,6 +243,7 @@ begin
 			if data_cache(i) /= data_test(i) then
 				
 					-- debug
+					report hstr(std_logic_vector(to_unsigned(i, 32)));
 					report str(data_cache(i));
 					report str(data_test(i));
 					

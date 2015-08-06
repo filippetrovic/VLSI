@@ -98,7 +98,7 @@ begin
 
 					out_data.psw.update_psw <= '1';
 
-					if unsigned(c_result(REGISTER_WIDTH downto 0)) = 0 then
+					if unsigned(c_result(REGISTER_WIDTH - 1 downto 0)) = 0 then
 						out_data.psw.psw_value(Z_POSITION) <= '1';
 					end if;
 
@@ -118,7 +118,7 @@ begin
 
 					out_data.psw.update_psw <= '1';
 
-					if unsigned(c_result(REGISTER_WIDTH downto 0)) = 0 then
+					if unsigned(c_result(REGISTER_WIDTH - 1 downto 0)) = 0 then
 						out_data.psw.psw_value(Z_POSITION) <= '1';
 					end if;
 
@@ -207,6 +207,18 @@ begin
 					opA := in_buffer.operand_A.out_value;
 					opB := in_buffer.operand_B.out_value;
 
+					if (opA(opA'left) = '0' and opB(opB'left) = '1') then
+						out_data.psw.psw_value(C_POSITION) <= '1';
+					end if;
+
+					if (opB(opB'left) = '1' and result(result'left) = '1') then
+						out_data.psw.psw_value(C_POSITION) <= '1';
+					end if;
+
+					if (opA(opA'left) = '0' and result(result'left) = '1') then
+						out_data.psw.psw_value(C_POSITION) <= '1';
+					end if;					
+
 					if (opA(opA'left) = '0') and (opB(opB'left) = '1') and (result(result'left) = '1') then
 						out_data.psw.psw_value(V_POSITION) <= '1';
 					end if;
@@ -233,6 +245,18 @@ begin
 
 					opA := in_buffer.operand_A.out_value;
 					opB := in_buffer.operand_B.out_value;
+
+					if (opA(opA'left) = '1' and opB(opB'left) = '1') then
+						out_data.psw.psw_value(C_POSITION) <= '1';
+					end if;
+
+					if (opB(opB'left) = '1' and result(result'left) = '0') then
+						out_data.psw.psw_value(C_POSITION) <= '1';
+					end if;
+
+					if (opA(opA'left) = '1' and result(result'left) = '0') then
+						out_data.psw.psw_value(C_POSITION) <= '1';
+					end if;		
 
 					if (opA(opA'left) = '0') and (opB(opB'left) = '0') and (result(result'left) = '1') then
 						out_data.psw.psw_value(V_POSITION) <= '1';
@@ -266,6 +290,18 @@ begin
 
 					opA := in_buffer.operand_A.out_value;
 					opB := in_buffer.operand_B.out_value;
+					
+					if (opA(opA'left) = '1' and opB(opB'left) = '1') then
+						out_data.psw.psw_value(C_POSITION) <= '1';
+					end if;
+
+					if (opB(opB'left) = '1' and result(result'left) = '0') then
+						out_data.psw.psw_value(C_POSITION) <= '1';
+					end if;
+
+					if (opA(opA'left) = '1' and result(result'left) = '0') then
+						out_data.psw.psw_value(C_POSITION) <= '1';
+					end if;					
 
 					if (opA(opA'left) = '0') and (opB(opB'left) = '0') and (result(result'left) = '1') then
 						out_data.psw.psw_value(V_POSITION) <= '1';
@@ -300,6 +336,18 @@ begin
 
 					opA := in_buffer.operand_A.out_value;
 					opB := in_buffer.operand_B.out_value;
+					
+					if (opA(opA'left) = '0' and opB(opB'left) = '1') then
+						out_data.psw.psw_value(C_POSITION) <= '1';
+					end if;
+
+					if (opB(opB'left) = '1' and result(result'left) = '1') then
+						out_data.psw.psw_value(C_POSITION) <= '1';
+					end if;
+
+					if (opA(opA'left) = '0' and result(result'left) = '1') then
+						out_data.psw.psw_value(C_POSITION) <= '1';
+					end if;					
 
 					if (opA(opA'left) = '0') and (opB(opB'left) = '1') and (result(result'left) = '1') then
 						out_data.psw.psw_value(V_POSITION) <= '1';
