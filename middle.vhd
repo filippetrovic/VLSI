@@ -135,6 +135,7 @@ begin
 	stopko_in_data.instructions(1).valid <= in_data.from_id.instructions(1).valid;
 
 	stopko_in_control.mem_busy <= in_control.mem_busy;
+	stopko_in_control.haz_type <= haz_out_control.haz_type;
 	out_control.stop           <= stopko_out_control.stop;
 	out_control.stall          <= stopko_out_control.stall or stall_out_control.stall;
 

@@ -71,7 +71,12 @@ begin
 					
 				end if;
 			when CHECK_STATE =>
-				if in_data.instructions(1).valid = '1' then
+				if in_control.haz_type = C_type then
+					
+					NS <= CHECK_STATE;
+					out_control.stall <= '1';
+					
+				elsif in_data.instructions(1).valid = '1' then
 					
 					NS <= STOP_STATE;
 					out_control.stall <= '1';

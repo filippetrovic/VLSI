@@ -197,8 +197,7 @@ package vlsi_pkg is
 	--	Switch-u je dovoljno samo da zna op code da bi mogao da aktivira func jedinicu.
 	--	Takodje kroz in_control signale dobija kontrolni signal kada da propusti instrukciju.
 	type switch_in_data_t is record
-		instructions : decoded_instruction_array_t;
-	--		haz_type: hazard_type; Revizija: Sada se koristi samo go signal iz SM 
+		instructions : decoded_instruction_array_t; 
 	end record switch_in_data_t;
 
 	--	Ovim tipom se oznacava da li Fica i Fedja idu u func jedinicu.
@@ -472,6 +471,7 @@ package vlsi_pkg is
 
 	type stopko_in_control_t is record
 		mem_busy : std_logic;
+		haz_type : hazard_type;
 	end record stopko_in_control_t;
 
 	type stopko_out_control_t is record
