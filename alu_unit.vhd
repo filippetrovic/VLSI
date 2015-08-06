@@ -126,7 +126,7 @@ begin
 
 					out_data.result.value <= c_result(REGISTER_WIDTH - 1 downto 0);
 				when SBC_M =>
-					if std2bool(in_data.psw(C_POSITION)) then
+					if not std2bool(in_data.psw(C_POSITION)) then
 						result := std_logic_vector(
 								unsigned(in_buffer.operand_A.out_value) - unsigned(in_buffer.operand_B.out_value)
 							);
@@ -314,7 +314,7 @@ begin
 					out_data.result.value <= result;
 
 				when SSBC_M =>
-					if std2bool(in_data.psw(C_POSITION)) then
+					if not std2bool(in_data.psw(C_POSITION)) then
 						result := std_logic_vector(
 								signed(in_buffer.operand_A.out_value) - signed(in_buffer.operand_B.out_value)
 							);
