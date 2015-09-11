@@ -161,10 +161,14 @@ begin
 
 				when CMP_M =>
 					result := std_logic_vector(
-							unsigned(in_buffer.operand_A.out_value) - unsigned(in_buffer.operand_B.out_value)
+							signed(in_buffer.operand_A.out_value) - signed(in_buffer.operand_B.out_value)
 						);
 
 					out_data.psw.update_psw <= '1';
+					
+					if signed(result) < 0 then
+						out_data.psw.psw_value(N_POSITION) <= '1';
+					end if;					
 
 					if unsigned(result) = 0 then
 						out_data.psw.psw_value(Z_POSITION) <= '1';
@@ -184,6 +188,14 @@ begin
 					if opB(opB'left) = '1' and result(result'left) = '1' then
 						out_data.psw.psw_value(C_POSITION) <= '1';
 					end if;
+					
+					if (opA(opA'left) = '0') and (opB(opB'left) = '1') and (result(result'left) = '1') then
+						out_data.psw.psw_value(V_POSITION) <= '1';
+					end if;
+
+					if (opA(opA'left) = '1') and (opB(opB'left) = '0') and (result(result'left) = '0') then
+						out_data.psw.psw_value(V_POSITION) <= '1';
+					end if;					
 
 					-- nema cuvanja rezultata
 					out_data.result.valid <= '0';
