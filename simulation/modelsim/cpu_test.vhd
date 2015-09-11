@@ -15,8 +15,8 @@ architecture test_arch of cpu_test is
 
 	type cache_mem_t is array (0 to MEM_SIZE - 1) of word_t;
 
-	signal inst_cache : cache_mem_t := (others => (others => 'X'));
-	signal data_cache : cache_mem_t := (others => (others => 'X'));
+	signal inst_cache : cache_mem_t := (others => (others => '0'));
+	signal data_cache : cache_mem_t := (others => (others => '0'));
 
 	-- marker signali
 	signal inst_init_done : std_logic := '0';
@@ -46,7 +46,7 @@ architecture test_arch of cpu_test is
 	signal cpu_stop : std_logic;
 
 	impure function ld_mem(file f : text) return cache_mem_t is
-		variable mem        : cache_mem_t;
+		variable mem        : cache_mem_t := (others => (others => '0'));
 		variable ln         : line;
 		variable dc_address : address_t;
 		variable dc_data    : word_t;
@@ -200,8 +200,10 @@ begin
 					if i /= to_integer(unsigned(dc_address)) then
 						data_to_write := data_cache(i);
 					else
+						-- tekuci podatak, jer se jos uvek ne nalazi u kesu
 						data_to_write := dc_data;
 					end if;
+					-- ova provera osigurava da u output fajlu imamo samo aktivne (dirty) lokacije
 					if (data_to_write /= undefined_data) then
 						std.textio.write(ln, hstr(std_logic_vector(to_unsigned(i, 32))));
 						std.textio.write(ln, string'(" "));
@@ -221,7 +223,7 @@ begin
 	stop_and_compare : process
 		file test_cache_file : text open read_mode is "test_cache.txt";
 
-		variable data_test : cache_mem_t := (others => (others => 'X'));
+		variable data_test : cache_mem_t := (others => (others => '0'));
 		variable matched   : boolean;
 
 	begin
