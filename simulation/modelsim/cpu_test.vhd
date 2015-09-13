@@ -15,8 +15,8 @@ architecture test_arch of cpu_test is
 
 	type cache_mem_t is array (0 to MEM_SIZE - 1) of word_t;
 
-	signal inst_cache : cache_mem_t := (others => (others => '0'));
-	signal data_cache : cache_mem_t := (others => (others => '0'));
+	signal inst_cache : cache_mem_t;
+	signal data_cache : cache_mem_t;
 
 	-- marker signali
 	signal inst_init_done : std_logic := '0';
@@ -46,11 +46,14 @@ architecture test_arch of cpu_test is
 	signal cpu_stop : std_logic;
 
 	impure function ld_mem(file f : text) return cache_mem_t is
-		variable mem        : cache_mem_t := (others => (others => '0'));
+		-- neinicijalizovane lokacije po potrebi postaviti na '0' pri ucitavanju
+		variable mem        : cache_mem_t := (others => (others => 'U'));
 		variable ln         : line;
 		variable dc_address : address_t;
 		variable dc_data    : word_t;
 	begin
+		-- nekada moze da se prijavi sledeca greska : STD_LOGIC_1164.HREAD End of string encountered
+		-- tada verovatno postoje prazne linije na kraju ulaznog fajla koje treba obrisati
 		while not endfile(f) loop
 
 			-- citamo narednu liniju fajla
@@ -233,7 +236,6 @@ begin
 		-- sadrzaj memorije sa ocekivanim sadrzajem i ispisati poruku
 		-- o ishodu poredjenja
 		if cpu_stop = '1' then
-			
 			wait until rising_edge(clk);
 
 			-- ocekivani sadrzaj
@@ -242,13 +244,12 @@ begin
 			matched := true;
 
 			for i in cache_mem_t'range loop
-			if data_cache(i) /= data_test(i) then
-				
+				if data_cache(i) /= data_test(i) then
 					-- debug
 					report hstr(std_logic_vector(to_unsigned(i, 32)));
 					report str(data_cache(i));
 					report str(data_test(i));
-					
+
 					matched := false;
 					report "Sadrzaj memorije se ne poklapa sa ocekivanim!";
 					exit;
@@ -258,7 +259,7 @@ begin
 			if matched then
 				report "Sadrzaji se poklapaju!";
 			end if;
-			
+
 			wait;
 
 		end if;
