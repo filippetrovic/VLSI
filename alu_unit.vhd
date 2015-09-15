@@ -51,7 +51,7 @@ begin
 
 		to_shift := 0;
 		opA      := (others => '-');
-		opA      := (others => '-');
+		opB      := (others => '-');
 		result   := (others => '-');
 		c_result := (others => '-');
 
